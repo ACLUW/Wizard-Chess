@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Text } from "@react-three/drei";
 import { Chess } from "chess.js";
 import type { PieceSymbol, Square } from "chess.js";
 import CaptureEffect from "./CaptureEffect";
@@ -95,6 +96,7 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
     : [];
 
   const squares = [];
+  const labels = [];
   const pieces = [];
 
   const board = chess.board();
@@ -137,9 +139,41 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
     }
   }
 
+  for (let index = 0; index < 8; index++) {
+    labels.push(
+      <Text
+        key={`file-${index}`}
+        color="#57f7ff"
+        fontSize={0.18}
+        position={[index - 3.5, 0.14, 4.18]}
+        rotation={[-Math.PI / 2, 0, 0]}
+      >
+        {files[index].toUpperCase()}
+      </Text>,
+      <Text
+        key={`rank-${index}`}
+        color="#f7ff5c"
+        fontSize={0.18}
+        position={[-4.18, 0.14, index - 3.5]}
+        rotation={[-Math.PI / 2, 0, 0]}
+      >
+        {8 - index}
+      </Text>,
+    );
+  }
+
   return (
     <group>
+      <mesh position={[0, -0.1, 0]}>
+        <boxGeometry args={[9.1, 0.16, 9.1]} />
+        <meshStandardMaterial color="#070b22" metalness={0.2} roughness={0.55} />
+      </mesh>
+      <mesh position={[0, 0.01, 0]}>
+        <boxGeometry args={[8.45, 0.05, 8.45]} />
+        <meshStandardMaterial color="#111a44" emissive="#071733" emissiveIntensity={0.35} />
+      </mesh>
       {squares}
+      {labels}
       {pieces}
       {captureAnimations.map((animation) => (
         <CaptureEffect
