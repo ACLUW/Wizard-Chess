@@ -1,6 +1,7 @@
 import { OrbitControls } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import { useState } from "react";
+import { playAttackSound } from "./audio";
 import "./App.css";
 import Board from "./components/Board";
 import type { CapturedPiece, GameMove } from "./components/Board";
@@ -21,6 +22,7 @@ function App() {
   const [resetSignal, setResetSignal] = useState(0);
 
   function handleMove(move: GameMove) {
+    playAttackSound(move.effectKind);
     setMoves((currentMoves) => [...currentMoves, move]);
 
     if (move.captured) {

@@ -49,12 +49,20 @@ function CaptureEffect({ kind, position, onDone }: CaptureEffectProps) {
   const opacity = Math.max(0, 1 - age / 0.8);
   const mainColor = kind === "fire" ? "#ff4b1f" : "#ffe66d";
   const accentColor = kind === "fire" ? "#ffd166" : "#ffffff";
+  const lightIntensity = kind === "fire" ? 9 * opacity : 4 * opacity;
 
   return (
     <group ref={groupRef} position={position}>
+      <pointLight color={mainColor} intensity={lightIntensity} distance={4} />
+
       <mesh position={[0, 0.35, 0]}>
         <sphereGeometry args={[kind === "fire" ? 0.34 : 0.2, 24, 24]} />
         <meshBasicMaterial color={mainColor} transparent opacity={opacity * 0.55} />
+      </mesh>
+
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.05, 0]}>
+        <ringGeometry args={[0.28 + age, 0.34 + age * 1.25, 32]} />
+        <meshBasicMaterial color={accentColor} transparent opacity={opacity * 0.7} />
       </mesh>
 
       {particles.map((particle, index) => (

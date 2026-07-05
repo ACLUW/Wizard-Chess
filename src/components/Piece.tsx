@@ -1,12 +1,19 @@
+import { useFrame } from "@react-three/fiber";
+import { useEffect, useRef } from "react";
+import type { Group } from "three";
+import { Vector3 } from "three";
+
 type PieceProps = {
   type: string;
   color: "white" | "black";
   position: [number, number, number];
+  previousPosition?: [number, number, number];
   onPress?: () => void;
 };
 
 // ACL: Simple 3D chess piece placeholder before we upgrade to realistic models
-function Piece({ type, color, position, onPress }: PieceProps) {
+function Piece({ type, color, position, previousPosition, onPress }: PieceProps) {
+  const groupRef = useRef<Group>(null);
   const pieceColor = color === "white" ? "#eeeeee" : "#222222";
 
   const heightMap: Record<string, number> = {
@@ -18,9 +25,27 @@ function Piece({ type, color, position, onPress }: PieceProps) {
     k: 1.05,
   };
 
+  useEffect(() => {
+    if (!groupRef.current || !previousPosition) {
+      return;
+    }
+
+    groupRef.current.position.set(...previousPosition);
+  }, [previousPosition]);
+
+  useFrame((_, delta) => {
+    if (!groupRef.current) {
+      return;
+    }
+
+    const target = new Vector3(...position);
+    groupRef.current.position.lerp(target, Math.min(1, delta * 9));
+  });
+
   return (
     <group
-      position={position}
+      ref={groupRef}
+      position={previousPosition ?? position}
       onClick={(event) => {
         event.stopPropagation();
         onPress?.();

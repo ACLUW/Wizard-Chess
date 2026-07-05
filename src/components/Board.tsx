@@ -11,6 +11,7 @@ export type CapturedPiece = {
 
 export type GameMove = {
   notation: string;
+  effectKind: "move" | "sparks" | "fire";
   captured?: CapturedPiece;
 };
 
@@ -26,6 +27,11 @@ type CaptureAnimation = {
   position: [number, number, number];
 };
 
+type MovingPiece = {
+  to: Square;
+  fromPosition: [number, number, number];
+};
+
 const files = ["a", "b", "c", "d", "e", "f", "g", "h"];
 const royalPieces: PieceSymbol[] = ["r", "n", "b", "q", "k"];
 
@@ -35,6 +41,13 @@ function toSquare(row: number, col: number) {
 
 function toPosition(row: number, col: number): [number, number, number] {
   return [col - 3.5, 0.15, row - 3.5];
+}
+
+function squareToPosition(square: Square): [number, number, number] {
+  const col = files.indexOf(square[0]);
+  const row = 8 - Number(square[1]);
+
+  return toPosition(row, col);
 }
 
 function getStatus(chess: Chess) {
@@ -56,14 +69,26 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
   const [selectedSquare, setSelectedSquare] = useState<Square | null>(null);
   const [, setPosition] = useState(chess.fen());
   const [captureAnimations, setCaptureAnimations] = useState<CaptureAnimation[]>([]);
+  const [movingPiece, setMovingPiece] = useState<MovingPiece | null>(null);
 
   useEffect(() => {
     chess.reset();
     setSelectedSquare(null);
     setCaptureAnimations([]);
+    setMovingPiece(null);
     setPosition(chess.fen());
     onStatusChange(getStatus(chess));
   }, [chess, onStatusChange, resetSignal]);
+
+  useEffect(() => {
+    if (!movingPiece) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => setMovingPiece(null), 450);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [movingPiece]);
 
   const legalTargets = selectedSquare
     ? chess.moves({ square: selectedSquare, verbose: true }).map((move) => move.to)
@@ -102,6 +127,9 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
             type={piece.type}
             color={piece.color === "w" ? "white" : "black"}
             position={toPosition(row, col)}
+            previousPosition={
+              movingPiece?.to === square ? movingPiece.fromPosition : undefined
+            }
             onPress={() => handleSquarePress(square, row, col)}
           />
         );
@@ -173,22 +201,34 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
     }
 
     const capturedPiece = move.captured;
+    const effectKind = capturedPiece
+      ? royalPieces.includes(capturedPiece)
+        ? "fire"
+        : "sparks"
+      : "move";
 
     if (capturedPiece) {
+      const captureKind = royalPieces.includes(capturedPiece) ? "fire" : "sparks";
+
       setCaptureAnimations((current) => [
         ...current,
         {
           id: Date.now(),
-          kind: royalPieces.includes(capturedPiece) ? "fire" : "sparks",
+          kind: captureKind,
           position: toPosition(row, col),
         },
       ]);
     }
 
+    setMovingPiece({
+      to: square,
+      fromPosition: squareToPosition(selectedSquare),
+    });
     setPosition(chess.fen());
     setSelectedSquare(null);
     onMove({
       notation: move.san,
+      effectKind,
       captured: capturedPiece
         ? {
             type: capturedPiece,
