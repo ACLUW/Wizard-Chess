@@ -21,13 +21,33 @@ body {
 }
 
 .hero-panel {
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  text-align: left;
   padding: 14px 18px;
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 22px;
   background: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(14px);
   box-shadow: 0 20px 70px rgba(0, 0, 0, 0.45);
+}
+
+.reset-button {
+  cursor: pointer;
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 999px;
+  padding: 12px 18px;
+  color: #061022;
+  background: linear-gradient(135deg, #57f7ff, #f7ff5c);
+  font-weight: 800;
+  box-shadow: 0 0 28px rgba(87, 247, 255, 0.28);
+}
+
+.reset-button:active {
+  transform: translateY(1px);
 }
 
 .eyebrow {
@@ -62,14 +82,59 @@ body {
 }
 
 .control-hint {
+  line-height: 1.45;
+}
+
+.game-dashboard {
+  display: grid;
+  grid-template-columns: minmax(140px, 1fr) minmax(160px, 1.2fr) minmax(220px, 1.8fr);
+  gap: 12px;
+}
+
+.dashboard-card {
   margin: 0 auto;
-  max-width: 760px;
+  width: 100%;
   padding: 10px 14px;
-  text-align: center;
   color: #d8dcff;
   border: 1px solid rgba(87, 247, 255, 0.22);
-  border-radius: 999px;
+  border-radius: 18px;
   background: rgba(5, 8, 22, 0.55);
+}
+
+.dashboard-card h2 {
+  margin: 0 0 6px;
+  color: #57f7ff;
+  font-size: 13px;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+}
+
+.captured-list {
+  display: flex;
+  min-height: 28px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  font-size: 25px;
+}
+
+.white-piece {
+  color: #ffffff;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.65);
+}
+
+.black-piece {
+  color: #11142e;
+  text-shadow: 0 0 8px rgba(87, 247, 255, 0.55);
+}
+
+.move-log {
+  display: flex;
+  min-height: 28px;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  margin: 0;
+  padding-left: 18px;
 }
 
 @media (max-width: 700px) {
@@ -79,18 +144,29 @@ body {
 
   .game-page {
     padding: 10px;
+    gap: 10px;
   }
 
   .game-stage {
-    height: 68vh;
+    height: 56vh;
   }
 
   .hero-panel {
+    align-items: stretch;
+    flex-direction: column;
     padding: 10px;
+    text-align: center;
   }
 
-  .control-hint {
-    border-radius: 18px;
+  .reset-button {
+    width: 100%;
+  }
+
+  .game-dashboard {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-card {
     font-size: 14px;
   }
 }

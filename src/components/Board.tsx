@@ -1,11 +1,23 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Chess } from "chess.js";
 import type { PieceSymbol, Square } from "chess.js";
 import CaptureEffect from "./CaptureEffect";
 import Piece from "./Piece";
 
+export type CapturedPiece = {
+  type: PieceSymbol;
+  color: "w" | "b";
+};
+
+export type GameMove = {
+  notation: string;
+  captured?: CapturedPiece;
+};
+
 type BoardProps = {
   onStatusChange: (status: string) => void;
+  onMove: (move: GameMove) => void;
+  resetSignal: number;
 };
 
 type CaptureAnimation = {
@@ -39,11 +51,19 @@ function getStatus(chess: Chess) {
   }`;
 }
 
-function Board({ onStatusChange }: BoardProps) {
+function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
   const [chess] = useState(() => new Chess());
   const [selectedSquare, setSelectedSquare] = useState<Square | null>(null);
   const [, setPosition] = useState(chess.fen());
   const [captureAnimations, setCaptureAnimations] = useState<CaptureAnimation[]>([]);
+
+  useEffect(() => {
+    chess.reset();
+    setSelectedSquare(null);
+    setCaptureAnimations([]);
+    setPosition(chess.fen());
+    onStatusChange(getStatus(chess));
+  }, [chess, onStatusChange, resetSignal]);
 
   const legalTargets = selectedSquare
     ? chess.moves({ square: selectedSquare, verbose: true }).map((move) => move.to)
@@ -167,6 +187,15 @@ function Board({ onStatusChange }: BoardProps) {
 
     setPosition(chess.fen());
     setSelectedSquare(null);
+    onMove({
+      notation: move.san,
+      captured: capturedPiece
+        ? {
+            type: capturedPiece,
+            color: move.color === "w" ? "b" : "w",
+          }
+        : undefined,
+    });
     onStatusChange(getStatus(chess));
   }
 }
