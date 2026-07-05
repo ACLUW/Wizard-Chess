@@ -14,6 +14,7 @@ type PieceProps = {
 // ACL: Simple 3D chess piece placeholder before we upgrade to realistic models
 function Piece({ type, color, position, previousPosition, onPress }: PieceProps) {
   const groupRef = useRef<Group>(null);
+  const targetRef = useRef(new Vector3(...position));
   const pieceColor = color === "white" ? "#eeeeee" : "#222222";
 
   const heightMap: Record<string, number> = {
@@ -33,13 +34,16 @@ function Piece({ type, color, position, previousPosition, onPress }: PieceProps)
     groupRef.current.position.set(...previousPosition);
   }, [previousPosition]);
 
+  useEffect(() => {
+    targetRef.current.set(...position);
+  }, [position]);
+
   useFrame((_, delta) => {
     if (!groupRef.current) {
       return;
     }
 
-    const target = new Vector3(...position);
-    groupRef.current.position.lerp(target, Math.min(1, delta * 9));
+    groupRef.current.position.lerp(targetRef.current, Math.min(1, delta * 9));
   });
 
   return (
