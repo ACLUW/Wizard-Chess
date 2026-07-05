@@ -52,7 +52,7 @@ function squareToPosition(square: Square): [number, number, number] {
 
 function getStatus(chess: Chess) {
   if (chess.isCheckmate()) {
-    return `Checkmate — ${chess.turn() === "w" ? "Black" : "White"} wins`;
+    return `Checkmate - ${chess.turn() === "w" ? "Black" : "White"} wins`;
   }
 
   if (chess.isDraw()) {
@@ -60,7 +60,7 @@ function getStatus(chess: Chess) {
   }
 
   return `${chess.turn() === "w" ? "White" : "Black"} to move${
-    chess.isCheck() ? " — check!" : ""
+    chess.isCheck() ? " - check!" : ""
   }`;
 }
 
@@ -241,3 +241,4 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
 }
 
 export default Board;
+
