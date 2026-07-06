@@ -3,6 +3,7 @@ import { useGLTF } from "@react-three/drei";
 import { Suspense, useEffect, useMemo, useRef } from "react";
 import type { Group, Object3D } from "three";
 import { Vector3 } from "three";
+import { createStoneTexture, stoneTexturePresets } from "../materials/stoneTextures";
 import { getPieceModelPath } from "../pieceModelConfig";
 import type { PieceColor, PieceKind } from "../pieceModelConfig";
 
@@ -119,6 +120,11 @@ function StoneMaterial({
   glow = 0,
   finish = "stone",
 }: StoneMaterialProps) {
+  const textureKey = isDarkHex(color) ? "blackOnyx" : "whiteMarble";
+  const texture = useMemo(
+    () => createStoneTexture(textureKey, stoneTexturePresets[textureKey]),
+    [textureKey],
+  );
   const settings = {
     stone: { metalness: 0.05, roughness: 0.2, envMapIntensity: 1.25 },
     polished: { metalness: 0.08, roughness: 0.12, envMapIntensity: 1.75 },
@@ -131,9 +137,24 @@ function StoneMaterial({
       color={color}
       emissive={accent}
       emissiveIntensity={glow}
+      map={texture}
       {...settings}
     />
   );
+}
+
+function isDarkHex(color: string) {
+  const hex = color.replace("#", "");
+
+  if (hex.length !== 6) {
+    return false;
+  }
+
+  const red = Number.parseInt(hex.slice(0, 2), 16);
+  const green = Number.parseInt(hex.slice(2, 4), 16);
+  const blue = Number.parseInt(hex.slice(4, 6), 16);
+
+  return red * 0.299 + green * 0.587 + blue * 0.114 < 90;
 }
 
 function CarvedBase({ palette }: { palette: MarblePalette }) {

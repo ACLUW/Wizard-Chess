@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Text } from "@react-three/drei";
 import { Chess } from "chess.js";
 import type { PieceSymbol, Square } from "chess.js";
 import CaptureEffect from "./CaptureEffect";
 import Piece from "./Piece";
+import { createStoneTexture, stoneTexturePresets } from "../materials/stoneTextures";
 
 export type CapturedPiece = {
   type: PieceSymbol;
@@ -71,6 +72,14 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
   const [, setPosition] = useState(chess.fen());
   const [captureAnimations, setCaptureAnimations] = useState<CaptureAnimation[]>([]);
   const [movingPiece, setMovingPiece] = useState<MovingPiece | null>(null);
+  const ivoryTileTexture = useMemo(
+    () => createStoneTexture("ivoryTile", stoneTexturePresets.ivoryTile),
+    [],
+  );
+  const blackTileTexture = useMemo(
+    () => createStoneTexture("blackTile", stoneTexturePresets.blackTile),
+    [],
+  );
 
   useEffect(() => {
     chess.reset();
@@ -116,7 +125,13 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
           }}
         >
           <boxGeometry args={[0.98, 0.12, 0.98]} />
-          <meshStandardMaterial color={getSquareColor(square, isLight)} />
+          <meshStandardMaterial
+            color={getSquareColor(square, isLight)}
+            envMapIntensity={1.75}
+            map={isLight ? ivoryTileTexture : blackTileTexture}
+            metalness={0.04}
+            roughness={0.1}
+          />
         </mesh>
       );
 
@@ -169,6 +184,7 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
         <meshStandardMaterial
           color="#080808"
           envMapIntensity={1.45}
+          map={blackTileTexture}
           metalness={0.05}
           roughness={0.16}
         />
@@ -178,25 +194,26 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
         <meshStandardMaterial
           color="#f4efe7"
           envMapIntensity={1.2}
+          map={ivoryTileTexture}
           metalness={0.02}
           roughness={0.24}
         />
       </mesh>
       <mesh position={[0, 0.09, 4.33]}>
         <boxGeometry args={[8.75, 0.18, 0.16]} />
-        <meshStandardMaterial color="#111111" metalness={0.05} roughness={0.14} />
+        <meshStandardMaterial color="#111111" map={blackTileTexture} metalness={0.05} roughness={0.14} />
       </mesh>
       <mesh position={[0, 0.09, -4.33]}>
         <boxGeometry args={[8.75, 0.18, 0.16]} />
-        <meshStandardMaterial color="#111111" metalness={0.05} roughness={0.14} />
+        <meshStandardMaterial color="#111111" map={blackTileTexture} metalness={0.05} roughness={0.14} />
       </mesh>
       <mesh position={[4.33, 0.09, 0]}>
         <boxGeometry args={[0.16, 0.18, 8.75]} />
-        <meshStandardMaterial color="#111111" metalness={0.05} roughness={0.14} />
+        <meshStandardMaterial color="#111111" map={blackTileTexture} metalness={0.05} roughness={0.14} />
       </mesh>
       <mesh position={[-4.33, 0.09, 0]}>
         <boxGeometry args={[0.16, 0.18, 8.75]} />
-        <meshStandardMaterial color="#111111" metalness={0.05} roughness={0.14} />
+        <meshStandardMaterial color="#111111" map={blackTileTexture} metalness={0.05} roughness={0.14} />
       </mesh>
       {squares}
       {labels}

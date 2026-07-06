@@ -17,6 +17,8 @@ const pieceModelPaths = {
 
 If a model path is not configured, the app renders the built-in procedural marble piece.
 
+Procedural marble/onyx textures are generated in `src/materials/stoneTextures.ts` and are applied to the fallback pieces and board.
+
 This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
 
 Currently, two official plugins are available:
