@@ -80,13 +80,13 @@ function App() {
           gl={{ antialias: true, powerPreference: "high-performance" }}
         >
           <ResponsiveCamera />
-          <Environment preset="night" />
-          <ambientLight intensity={0.7} />
-          <directionalLight position={[3, 6, 4]} intensity={1.4} />
+          <Environment preset="studio" />
+          <ambientLight intensity={0.55} />
+          <directionalLight position={[3, 6, 4]} intensity={1.8} />
           <spotLight
             angle={0.45}
-            color="#f7ff5c"
-            intensity={1.5}
+            color="#fff4dc"
+            intensity={2}
             penumbra={0.55}
             position={[0, 7, 1.5]}
           />

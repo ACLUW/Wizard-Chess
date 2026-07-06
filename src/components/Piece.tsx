@@ -13,22 +13,21 @@ type PieceProps = {
   onPress?: () => void;
 };
 
-type Palette = {
-  armor: string;
-  cloth: string;
-  trim: string;
-  weapon: string;
-  glow: string;
+type MarblePalette = {
+  stone: string;
+  shadow: string;
+  carving: string;
+  accent: string;
 };
 
-type MaterialProps = {
+type StoneMaterialProps = {
   color: string;
-  emissive?: string;
+  accent?: string;
   glow?: number;
-  finish?: "armor" | "cloth" | "accent" | "weapon";
+  finish?: "stone" | "polished" | "shadow" | "accent";
 };
 
-const pieceScale = 0.74;
+const pieceScale = 0.78;
 
 function Piece({ type, color, position, previousPosition, onPress }: PieceProps) {
   const groupRef = useRef<Group>(null);
@@ -65,116 +64,133 @@ function Piece({ type, color, position, previousPosition, onPress }: PieceProps)
         onPress?.();
       }}
     >
-      <ChampionBase palette={palette} />
-      <ChampionBody palette={palette} />
-      <ChampionIdentity type={type} palette={palette} />
+      <CarvedBase palette={palette} />
+      <OrnateColumn palette={palette} />
+      <PieceCrown type={type} palette={palette} />
+      <ReliefSwirls palette={palette} />
     </group>
   );
 }
 
-function getPalette(color: PieceProps["color"]): Palette {
+function getPalette(color: PieceProps["color"]): MarblePalette {
   if (color === "white") {
     return {
-      armor: "#dfe8ff",
-      cloth: "#1f8cff",
-      trim: "#7df9ff",
-      weapon: "#f5f0c2",
-      glow: "#57f7ff",
+      stone: "#f3f0e8",
+      shadow: "#cbc6bb",
+      carving: "#ffffff",
+      accent: "#d9d2c2",
     };
   }
 
   return {
-    armor: "#151729",
-    cloth: "#5b153f",
-    trim: "#ff4bdf",
-    weapon: "#ff7a1f",
-    glow: "#ff4bdf",
+    stone: "#151515",
+    shadow: "#050505",
+    carving: "#2a2a2a",
+    accent: "#3d3d3d",
   };
 }
 
-function MetalMaterial({ color, emissive = "#000000", glow = 0, finish = "armor" }: MaterialProps) {
+function StoneMaterial({
+  color,
+  accent = "#ffffff",
+  glow = 0,
+  finish = "stone",
+}: StoneMaterialProps) {
   const settings = {
-    armor: { metalness: 0.92, roughness: 0.18, envMapIntensity: 1.9 },
-    cloth: { metalness: 0.45, roughness: 0.32, envMapIntensity: 1.2 },
-    accent: { metalness: 0.86, roughness: 0.12, envMapIntensity: 2.2 },
-    weapon: { metalness: 0.96, roughness: 0.1, envMapIntensity: 2.6 },
+    stone: { metalness: 0.05, roughness: 0.2, envMapIntensity: 1.25 },
+    polished: { metalness: 0.08, roughness: 0.12, envMapIntensity: 1.75 },
+    shadow: { metalness: 0.03, roughness: 0.28, envMapIntensity: 0.9 },
+    accent: { metalness: 0.08, roughness: 0.16, envMapIntensity: 1.65 },
   }[finish];
 
   return (
     <meshStandardMaterial
       color={color}
-      emissive={emissive}
+      emissive={accent}
       emissiveIntensity={glow}
       {...settings}
     />
   );
 }
 
-function ChampionBase({ palette }: { palette: Palette }) {
+function CarvedBase({ palette }: { palette: MarblePalette }) {
   return (
     <>
-      <mesh position={[0, 0.07, 0]}>
-        <cylinderGeometry args={[0.39, 0.46, 0.14, 40]} />
-        <MetalMaterial color={palette.armor} />
+      <mesh position={[0, 0.06, 0]}>
+        <cylinderGeometry args={[0.43, 0.48, 0.12, 56]} />
+        <StoneMaterial color={palette.shadow} finish="polished" />
       </mesh>
-      <mesh position={[0, 0.17, 0]}>
-        <torusGeometry args={[0.32, 0.032, 10, 40]} />
-        <MetalMaterial color={palette.trim} emissive={palette.glow} finish="accent" glow={0.42} />
+      <mesh position={[0, 0.16, 0]}>
+        <cylinderGeometry args={[0.38, 0.43, 0.1, 56]} />
+        <StoneMaterial color={palette.stone} finish="polished" />
+      </mesh>
+      <mesh position={[0, 0.25, 0]}>
+        <torusGeometry args={[0.34, 0.03, 12, 56]} />
+        <StoneMaterial color={palette.accent} finish="accent" />
+      </mesh>
+      <mesh position={[0, 0.32, 0]}>
+        <cylinderGeometry args={[0.31, 0.36, 0.09, 56]} />
+        <StoneMaterial color={palette.stone} finish="polished" />
       </mesh>
     </>
   );
 }
 
-function ChampionBody({ palette }: { palette: Palette }) {
+function OrnateColumn({ palette }: { palette: MarblePalette }) {
   return (
     <>
-      <mesh position={[-0.12, 0.35, 0]} rotation={[0, 0, 0.12]}>
-        <capsuleGeometry args={[0.08, 0.34, 8, 14]} />
-        <MetalMaterial color={palette.armor} />
+      <mesh position={[0, 0.58, 0]}>
+        <cylinderGeometry args={[0.22, 0.3, 0.5, 44]} />
+        <StoneMaterial color={palette.stone} />
       </mesh>
-      <mesh position={[0.12, 0.35, 0]} rotation={[0, 0, -0.12]}>
-        <capsuleGeometry args={[0.08, 0.34, 8, 14]} />
-        <MetalMaterial color={palette.armor} />
+      <mesh position={[0, 0.86, 0]}>
+        <sphereGeometry args={[0.25, 32, 20]} />
+        <StoneMaterial color={palette.stone} finish="polished" />
       </mesh>
-      <mesh position={[0, 0.62, 0]}>
-        <cylinderGeometry args={[0.2, 0.28, 0.55, 6]} />
-        <MetalMaterial color={palette.cloth} finish="cloth" />
-      </mesh>
-      <mesh position={[0, 0.78, 0]}>
-        <boxGeometry args={[0.52, 0.13, 0.28]} />
-        <MetalMaterial color={palette.armor} />
-      </mesh>
-      <mesh position={[-0.34, 0.72, 0]} rotation={[0, 0, -0.65]}>
-        <capsuleGeometry args={[0.055, 0.36, 8, 12]} />
-        <MetalMaterial color={palette.armor} />
-      </mesh>
-      <mesh position={[0.34, 0.72, 0]} rotation={[0, 0, 0.65]}>
-        <capsuleGeometry args={[0.055, 0.36, 8, 12]} />
-        <MetalMaterial color={palette.armor} />
-      </mesh>
-      <mesh position={[0, 1.05, 0]}>
-        <sphereGeometry args={[0.18, 24, 24]} />
-        <MetalMaterial color={palette.armor} />
-      </mesh>
-      <mesh position={[0, 0.58, -0.12]} rotation={[0.45, 0, 0]}>
-        <boxGeometry args={[0.38, 0.08, 0.08]} />
-        <MetalMaterial color={palette.trim} emissive={palette.glow} finish="accent" glow={0.34} />
+      <mesh position={[0, 0.98, 0]}>
+        <cylinderGeometry args={[0.21, 0.24, 0.12, 44]} />
+        <StoneMaterial color={palette.stone} />
       </mesh>
     </>
   );
 }
 
-function ChampionIdentity({ type, palette }: { type: PieceKind; palette: Palette }) {
+function ReliefSwirls({ palette }: { palette: MarblePalette }) {
+  return (
+    <>
+      {[0, 1, 2, 3].map((index) => {
+        const angle = (index / 4) * Math.PI * 2;
+        const x = Math.cos(angle) * 0.255;
+        const z = Math.sin(angle) * 0.255;
+
+        return (
+          <group key={index} position={[x, 0.62, z]} rotation={[Math.PI / 2, 0, -angle]}>
+            <mesh>
+              <torusGeometry args={[0.11, 0.012, 8, 28, Math.PI * 1.35]} />
+              <StoneMaterial color={palette.carving} finish="accent" />
+            </mesh>
+            <mesh position={[0.06, 0.08, 0]}>
+              <torusGeometry args={[0.06, 0.01, 8, 24, Math.PI * 1.25]} />
+              <StoneMaterial color={palette.accent} finish="accent" />
+            </mesh>
+          </group>
+        );
+      })}
+    </>
+  );
+}
+
+function PieceCrown({ type, palette }: { type: PieceKind; palette: MarblePalette }) {
   if (type === "p") {
     return (
       <>
-        <mesh position={[0, 1.24, 0]}>
-          <coneGeometry args={[0.18, 0.22, 4]} />
-          <MetalMaterial color={palette.trim} emissive={palette.glow} finish="accent" glow={0.35} />
+        <mesh position={[0, 1.18, 0]}>
+          <sphereGeometry args={[0.19, 32, 24]} />
+          <StoneMaterial color={palette.stone} finish="polished" />
         </mesh>
-        <mesh position={[0.32, 0.58, 0.08]} rotation={[0.35, 0.15, -0.25]}>
-          <boxGeometry args={[0.08, 0.4, 0.04]} />
-          <MetalMaterial color={palette.weapon} finish="weapon" />
+        <mesh position={[0, 1.39, 0]}>
+          <sphereGeometry args={[0.07, 18, 14]} />
+          <StoneMaterial color={palette.carving} finish="accent" />
         </mesh>
       </>
     );
@@ -183,27 +199,23 @@ function ChampionIdentity({ type, palette }: { type: PieceKind; palette: Palette
   if (type === "r") {
     return (
       <>
-        <mesh position={[0, 1.2, 0]}>
-          <cylinderGeometry args={[0.25, 0.2, 0.18, 8]} />
-          <MetalMaterial color={palette.armor} />
+        <mesh position={[0, 1.18, 0]}>
+          <cylinderGeometry args={[0.28, 0.25, 0.2, 44]} />
+          <StoneMaterial color={palette.stone} finish="polished" />
         </mesh>
-        {[0, 1, 2, 3].map((index) => (
+        {[0, 1, 2, 3, 4, 5].map((index) => (
           <mesh
             key={index}
             position={[
-              Math.cos((index * Math.PI) / 2) * 0.2,
-              1.33,
-              Math.sin((index * Math.PI) / 2) * 0.2,
+              Math.cos((index / 6) * Math.PI * 2) * 0.22,
+              1.34,
+              Math.sin((index / 6) * Math.PI * 2) * 0.22,
             ]}
           >
-            <boxGeometry args={[0.11, 0.16, 0.11]} />
-            <MetalMaterial color={palette.trim} emissive={palette.glow} finish="accent" glow={0.34} />
+            <boxGeometry args={[0.09, 0.14, 0.09]} />
+            <StoneMaterial color={palette.stone} finish="polished" />
           </mesh>
         ))}
-        <mesh position={[-0.43, 0.62, 0]} rotation={[0, 0, 0.08]}>
-          <boxGeometry args={[0.12, 0.58, 0.38]} />
-          <MetalMaterial color={palette.armor} />
-        </mesh>
       </>
     );
   }
@@ -211,17 +223,21 @@ function ChampionIdentity({ type, palette }: { type: PieceKind; palette: Palette
   if (type === "n") {
     return (
       <>
-        <mesh position={[0.07, 1.22, -0.02]} rotation={[0.08, 0, -0.45]}>
-          <boxGeometry args={[0.34, 0.42, 0.22]} />
-          <MetalMaterial color={palette.armor} />
+        <mesh position={[0.03, 1.16, -0.02]} rotation={[0.05, 0, -0.28]}>
+          <boxGeometry args={[0.32, 0.45, 0.22]} />
+          <StoneMaterial color={palette.stone} finish="polished" />
         </mesh>
-        <mesh position={[0.21, 1.42, -0.02]} rotation={[0, 0, -0.72]}>
-          <coneGeometry args={[0.11, 0.26, 4]} />
-          <MetalMaterial color={palette.trim} emissive={palette.glow} finish="accent" glow={0.42} />
+        <mesh position={[0.16, 1.36, -0.03]} rotation={[0, 0, -0.78]}>
+          <coneGeometry args={[0.12, 0.24, 4]} />
+          <StoneMaterial color={palette.stone} finish="polished" />
         </mesh>
-        <mesh position={[0.42, 0.73, 0.06]} rotation={[0, 0, -0.85]}>
-          <boxGeometry args={[0.08, 0.74, 0.08]} />
-          <MetalMaterial color={palette.weapon} finish="weapon" />
+        <mesh position={[0.24, 1.18, 0.1]}>
+          <sphereGeometry args={[0.035, 12, 10]} />
+          <StoneMaterial color={palette.shadow} finish="shadow" />
+        </mesh>
+        <mesh position={[-0.08, 1.1, 0]}>
+          <torusGeometry args={[0.18, 0.02, 8, 28, Math.PI * 1.3]} />
+          <StoneMaterial color={palette.carving} finish="accent" />
         </mesh>
       </>
     );
@@ -230,17 +246,17 @@ function ChampionIdentity({ type, palette }: { type: PieceKind; palette: Palette
   if (type === "b") {
     return (
       <>
-        <mesh position={[0, 1.22, 0]}>
-          <sphereGeometry args={[0.22, 24, 24]} />
-          <MetalMaterial color={palette.armor} />
+        <mesh position={[0, 1.2, 0]}>
+          <sphereGeometry args={[0.23, 32, 24]} />
+          <StoneMaterial color={palette.stone} finish="polished" />
         </mesh>
-        <mesh position={[0.02, 1.38, 0]} rotation={[0, 0, 0.45]}>
-          <boxGeometry args={[0.06, 0.36, 0.08]} />
-          <MetalMaterial color={palette.trim} emissive={palette.glow} finish="accent" glow={0.52} />
+        <mesh position={[0.02, 1.43, 0]} rotation={[0, 0, 0.4]}>
+          <boxGeometry args={[0.06, 0.34, 0.08]} />
+          <StoneMaterial color={palette.shadow} finish="shadow" />
         </mesh>
-        <mesh position={[-0.36, 0.83, 0.03]} rotation={[0, 0, 0.72]}>
-          <boxGeometry args={[0.08, 0.78, 0.08]} />
-          <MetalMaterial color={palette.weapon} finish="weapon" />
+        <mesh position={[0, 1.42, 0]}>
+          <coneGeometry args={[0.16, 0.22, 32]} />
+          <StoneMaterial color={palette.stone} finish="polished" />
         </mesh>
       </>
     );
@@ -249,26 +265,26 @@ function ChampionIdentity({ type, palette }: { type: PieceKind; palette: Palette
   if (type === "q") {
     return (
       <>
-        <mesh position={[0, 1.25, 0]}>
-          <coneGeometry args={[0.28, 0.34, 5]} />
-          <MetalMaterial color={palette.armor} />
+        <mesh position={[0, 1.18, 0]}>
+          <cylinderGeometry args={[0.23, 0.28, 0.18, 44]} />
+          <StoneMaterial color={palette.stone} finish="polished" />
         </mesh>
         {[0, 1, 2, 3, 4].map((index) => (
           <mesh
             key={index}
             position={[
               Math.cos((index / 5) * Math.PI * 2) * 0.2,
-              1.48,
+              1.42,
               Math.sin((index / 5) * Math.PI * 2) * 0.2,
             ]}
           >
-            <sphereGeometry args={[0.075, 16, 16]} />
-            <MetalMaterial color={palette.weapon} emissive={palette.weapon} finish="weapon" glow={0.46} />
+            <sphereGeometry args={[0.075, 16, 12]} />
+            <StoneMaterial color={palette.carving} finish="accent" />
           </mesh>
         ))}
-        <mesh position={[0.46, 0.76, 0]} rotation={[0, 0, -0.6]}>
-          <torusGeometry args={[0.16, 0.025, 8, 28]} />
-          <MetalMaterial color={palette.trim} emissive={palette.glow} finish="accent" glow={0.45} />
+        <mesh position={[0, 1.34, 0]}>
+          <torusGeometry args={[0.22, 0.025, 10, 42]} />
+          <StoneMaterial color={palette.accent} finish="accent" />
         </mesh>
       </>
     );
@@ -276,21 +292,21 @@ function ChampionIdentity({ type, palette }: { type: PieceKind; palette: Palette
 
   return (
     <>
-      <mesh position={[0, 1.28, 0]}>
-        <cylinderGeometry args={[0.2, 0.24, 0.2, 6]} />
-        <MetalMaterial color={palette.armor} />
+      <mesh position={[0, 1.2, 0]}>
+        <cylinderGeometry args={[0.22, 0.26, 0.22, 44]} />
+        <StoneMaterial color={palette.stone} finish="polished" />
       </mesh>
-      <mesh position={[0, 1.53, 0]}>
-        <boxGeometry args={[0.09, 0.38, 0.09]} />
-        <MetalMaterial color={palette.weapon} emissive={palette.weapon} finish="weapon" glow={0.5} />
+      <mesh position={[0, 1.48, 0]}>
+        <boxGeometry args={[0.08, 0.38, 0.08]} />
+        <StoneMaterial color={palette.carving} finish="accent" />
       </mesh>
-      <mesh position={[0, 1.63, 0]}>
-        <boxGeometry args={[0.31, 0.08, 0.08]} />
-        <MetalMaterial color={palette.weapon} emissive={palette.weapon} finish="weapon" glow={0.5} />
+      <mesh position={[0, 1.58, 0]}>
+        <boxGeometry args={[0.3, 0.08, 0.08]} />
+        <StoneMaterial color={palette.carving} finish="accent" />
       </mesh>
-      <mesh position={[0.43, 0.8, 0.02]} rotation={[0, 0, -0.25]}>
-        <boxGeometry args={[0.1, 0.82, 0.08]} />
-        <MetalMaterial color={palette.weapon} finish="weapon" />
+      <mesh position={[0, 1.34, 0]}>
+        <torusGeometry args={[0.22, 0.025, 10, 42]} />
+        <StoneMaterial color={palette.accent} finish="accent" />
       </mesh>
     </>
   );
