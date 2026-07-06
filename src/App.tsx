@@ -1,4 +1,4 @@
-﻿import { Environment, OrbitControls } from "@react-three/drei";
+import { Environment, OrbitControls } from "@react-three/drei";
 import { Canvas, useThree } from "@react-three/fiber";
 import { useEffect, useState } from "react";
 import { playAttackSound } from "./audio";
