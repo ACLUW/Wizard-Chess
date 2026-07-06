@@ -1,13 +1,14 @@
 import { useFrame } from "@react-three/fiber";
-import { useEffect, useRef } from "react";
-import type { Group } from "three";
+import { useGLTF } from "@react-three/drei";
+import { Suspense, useEffect, useMemo, useRef } from "react";
+import type { Group, Object3D } from "three";
 import { Vector3 } from "three";
-
-type PieceKind = "p" | "r" | "n" | "b" | "q" | "k";
+import { getPieceModelPath } from "../pieceModelConfig";
+import type { PieceColor, PieceKind } from "../pieceModelConfig";
 
 type PieceProps = {
   type: PieceKind;
-  color: "white" | "black";
+  color: PieceColor;
   position: [number, number, number];
   previousPosition?: [number, number, number];
   onPress?: () => void;
@@ -33,6 +34,7 @@ function Piece({ type, color, position, previousPosition, onPress }: PieceProps)
   const groupRef = useRef<Group>(null);
   const targetRef = useRef(new Vector3(...position));
   const palette = getPalette(color);
+  const modelPath = getPieceModelPath(type, color);
 
   useEffect(() => {
     if (!groupRef.current || !previousPosition) {
@@ -64,15 +66,36 @@ function Piece({ type, color, position, previousPosition, onPress }: PieceProps)
         onPress?.();
       }}
     >
-      <CarvedBase palette={palette} />
-      <OrnateColumn palette={palette} />
-      <PieceCrown type={type} palette={palette} />
-      <ReliefSwirls palette={palette} />
+      {modelPath ? (
+        <Suspense fallback={<ProceduralMarblePiece type={type} palette={palette} />}>
+          <LoadedModelPiece modelPath={modelPath} />
+        </Suspense>
+      ) : (
+        <ProceduralMarblePiece type={type} palette={palette} />
+      )}
     </group>
   );
 }
 
-function getPalette(color: PieceProps["color"]): MarblePalette {
+function LoadedModelPiece({ modelPath }: { modelPath: string }) {
+  const { scene } = useGLTF(modelPath);
+  const clonedScene = useMemo<Object3D>(() => scene.clone(true), [scene]);
+
+  return <primitive object={clonedScene} scale={[1, 1, 1]} />;
+}
+
+function ProceduralMarblePiece({ type, palette }: { type: PieceKind; palette: MarblePalette }) {
+  return (
+    <>
+      <CarvedBase palette={palette} />
+      <OrnateColumn palette={palette} />
+      <PieceCrown type={type} palette={palette} />
+      <ReliefSwirls palette={palette} />
+    </>
+  );
+}
+
+function getPalette(color: PieceColor): MarblePalette {
   if (color === "white") {
     return {
       stone: "#f3f0e8",
