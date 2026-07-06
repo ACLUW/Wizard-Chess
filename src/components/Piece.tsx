@@ -3,29 +3,37 @@ import { useEffect, useRef } from "react";
 import type { Group } from "three";
 import { Vector3 } from "three";
 
+type PieceKind = "p" | "r" | "n" | "b" | "q" | "k";
+
 type PieceProps = {
-  type: "p" | "r" | "n" | "b" | "q" | "k";
+  type: PieceKind;
   color: "white" | "black";
   position: [number, number, number];
   previousPosition?: [number, number, number];
   onPress?: () => void;
 };
 
+type Palette = {
+  armor: string;
+  cloth: string;
+  trim: string;
+  weapon: string;
+  glow: string;
+};
+
+type MaterialProps = {
+  color: string;
+  emissive?: string;
+  glow?: number;
+  finish?: "armor" | "cloth" | "accent" | "weapon";
+};
+
+const pieceScale = 0.74;
+
 function Piece({ type, color, position, previousPosition, onPress }: PieceProps) {
   const groupRef = useRef<Group>(null);
   const targetRef = useRef(new Vector3(...position));
-  const pieceColor = color === "white" ? "#f7f7ff" : "#17182f";
-  const trimColor = color === "white" ? "#57f7ff" : "#ff4bdf";
-  const crownColor = color === "white" ? "#f7ff5c" : "#ff7a1f";
-
-  const heightMap: Record<string, number> = {
-    p: 0.45,
-    r: 0.7,
-    n: 0.75,
-    b: 0.8,
-    q: 0.95,
-    k: 1.05,
-  };
+  const palette = getPalette(color);
 
   useEffect(() => {
     if (!groupRef.current || !previousPosition) {
@@ -51,101 +59,122 @@ function Piece({ type, color, position, previousPosition, onPress }: PieceProps)
     <group
       ref={groupRef}
       position={previousPosition ?? position}
+      scale={[pieceScale, pieceScale, pieceScale]}
       onClick={(event) => {
         event.stopPropagation();
         onPress?.();
       }}
     >
-      <PieceBase pieceColor={pieceColor} trimColor={trimColor} />
-      <PieceBody
-        type={type}
-        pieceColor={pieceColor}
-        trimColor={trimColor}
-        crownColor={crownColor}
-        height={heightMap[type]}
-      />
+      <ChampionBase palette={palette} />
+      <ChampionBody palette={palette} />
+      <ChampionIdentity type={type} palette={palette} />
     </group>
   );
 }
 
-type PiecePartProps = {
-  pieceColor: string;
-  trimColor: string;
-  crownColor?: string;
-  height?: number;
-};
+function getPalette(color: PieceProps["color"]): Palette {
+  if (color === "white") {
+    return {
+      armor: "#dfe8ff",
+      cloth: "#1f8cff",
+      trim: "#7df9ff",
+      weapon: "#f5f0c2",
+      glow: "#57f7ff",
+    };
+  }
 
-type MetalMaterialProps = {
-  color: string;
-  emissive?: string;
-  glow?: number;
-  finish?: "body" | "accent" | "crown";
-};
-
-function MetalMaterial({
-  color,
-  emissive = "#000000",
-  glow = 0,
-  finish = "body",
-}: MetalMaterialProps) {
-  const finishSettings = {
-    body: {
-      metalness: 0.9,
-      roughness: 0.16,
-      envMapIntensity: 1.7,
-    },
-    accent: {
-      metalness: 0.78,
-      roughness: 0.12,
-      envMapIntensity: 2.1,
-    },
-    crown: {
-      metalness: 0.95,
-      roughness: 0.1,
-      envMapIntensity: 2.4,
-    },
+  return {
+    armor: "#151729",
+    cloth: "#5b153f",
+    trim: "#ff4bdf",
+    weapon: "#ff7a1f",
+    glow: "#ff4bdf",
   };
+}
+
+function MetalMaterial({ color, emissive = "#000000", glow = 0, finish = "armor" }: MaterialProps) {
+  const settings = {
+    armor: { metalness: 0.92, roughness: 0.18, envMapIntensity: 1.9 },
+    cloth: { metalness: 0.45, roughness: 0.32, envMapIntensity: 1.2 },
+    accent: { metalness: 0.86, roughness: 0.12, envMapIntensity: 2.2 },
+    weapon: { metalness: 0.96, roughness: 0.1, envMapIntensity: 2.6 },
+  }[finish];
 
   return (
     <meshStandardMaterial
       color={color}
       emissive={emissive}
       emissiveIntensity={glow}
-      {...finishSettings[finish]}
+      {...settings}
     />
   );
 }
 
-function PieceBase({ pieceColor, trimColor }: PiecePartProps) {
+function ChampionBase({ palette }: { palette: Palette }) {
   return (
     <>
-      <mesh position={[0, 0.08, 0]}>
-        <cylinderGeometry args={[0.34, 0.4, 0.16, 36]} />
-        <MetalMaterial color={pieceColor} />
+      <mesh position={[0, 0.07, 0]}>
+        <cylinderGeometry args={[0.39, 0.46, 0.14, 40]} />
+        <MetalMaterial color={palette.armor} />
       </mesh>
-      <mesh position={[0, 0.2, 0]}>
-        <torusGeometry args={[0.3, 0.035, 10, 36]} />
-        <MetalMaterial color={trimColor} emissive={trimColor} finish="accent" glow={0.42} />
+      <mesh position={[0, 0.17, 0]}>
+        <torusGeometry args={[0.32, 0.032, 10, 40]} />
+        <MetalMaterial color={palette.trim} emissive={palette.glow} finish="accent" glow={0.42} />
       </mesh>
     </>
   );
 }
 
-function PieceBody({ type, pieceColor, trimColor, crownColor, height = 0.7 }: PiecePartProps & {
-  type: PieceProps["type"];
-}) {
-  const crown = crownColor ?? trimColor;
+function ChampionBody({ palette }: { palette: Palette }) {
+  return (
+    <>
+      <mesh position={[-0.12, 0.35, 0]} rotation={[0, 0, 0.12]}>
+        <capsuleGeometry args={[0.08, 0.34, 8, 14]} />
+        <MetalMaterial color={palette.armor} />
+      </mesh>
+      <mesh position={[0.12, 0.35, 0]} rotation={[0, 0, -0.12]}>
+        <capsuleGeometry args={[0.08, 0.34, 8, 14]} />
+        <MetalMaterial color={palette.armor} />
+      </mesh>
+      <mesh position={[0, 0.62, 0]}>
+        <cylinderGeometry args={[0.2, 0.28, 0.55, 6]} />
+        <MetalMaterial color={palette.cloth} finish="cloth" />
+      </mesh>
+      <mesh position={[0, 0.78, 0]}>
+        <boxGeometry args={[0.52, 0.13, 0.28]} />
+        <MetalMaterial color={palette.armor} />
+      </mesh>
+      <mesh position={[-0.34, 0.72, 0]} rotation={[0, 0, -0.65]}>
+        <capsuleGeometry args={[0.055, 0.36, 8, 12]} />
+        <MetalMaterial color={palette.armor} />
+      </mesh>
+      <mesh position={[0.34, 0.72, 0]} rotation={[0, 0, 0.65]}>
+        <capsuleGeometry args={[0.055, 0.36, 8, 12]} />
+        <MetalMaterial color={palette.armor} />
+      </mesh>
+      <mesh position={[0, 1.05, 0]}>
+        <sphereGeometry args={[0.18, 24, 24]} />
+        <MetalMaterial color={palette.armor} />
+      </mesh>
+      <mesh position={[0, 0.58, -0.12]} rotation={[0.45, 0, 0]}>
+        <boxGeometry args={[0.38, 0.08, 0.08]} />
+        <MetalMaterial color={palette.trim} emissive={palette.glow} finish="accent" glow={0.34} />
+      </mesh>
+    </>
+  );
+}
 
+function ChampionIdentity({ type, palette }: { type: PieceKind; palette: Palette }) {
   if (type === "p") {
     return (
       <>
-        <mesh position={[0, height / 2 + 0.12, 0]}>
-          <cylinderGeometry args={[0.2, 0.28, height, 32]} />
-          <MetalMaterial color={pieceColor} />
+        <mesh position={[0, 1.24, 0]}>
+          <coneGeometry args={[0.18, 0.22, 4]} />
+          <MetalMaterial color={palette.trim} emissive={palette.glow} finish="accent" glow={0.35} />
         </mesh>
-        <mesh position={[0, height + 0.38, 0]}>
-          <sphereGeometry args={[0.22, 32, 32]} />
-          <MetalMaterial color={pieceColor} />
+        <mesh position={[0.32, 0.58, 0.08]} rotation={[0.35, 0.15, -0.25]}>
+          <boxGeometry args={[0.08, 0.4, 0.04]} />
+          <MetalMaterial color={palette.weapon} finish="weapon" />
         </mesh>
       </>
     );
@@ -154,27 +183,27 @@ function PieceBody({ type, pieceColor, trimColor, crownColor, height = 0.7 }: Pi
   if (type === "r") {
     return (
       <>
-        <mesh position={[0, 0.48, 0]}>
-          <cylinderGeometry args={[0.24, 0.3, 0.58, 36]} />
-          <MetalMaterial color={pieceColor} />
-        </mesh>
-        <mesh position={[0, 0.82, 0]}>
-          <cylinderGeometry args={[0.34, 0.28, 0.18, 8]} />
-          <MetalMaterial color={pieceColor} />
+        <mesh position={[0, 1.2, 0]}>
+          <cylinderGeometry args={[0.25, 0.2, 0.18, 8]} />
+          <MetalMaterial color={palette.armor} />
         </mesh>
         {[0, 1, 2, 3].map((index) => (
           <mesh
             key={index}
             position={[
-              Math.cos((index * Math.PI) / 2) * 0.24,
-              0.98,
-              Math.sin((index * Math.PI) / 2) * 0.24,
+              Math.cos((index * Math.PI) / 2) * 0.2,
+              1.33,
+              Math.sin((index * Math.PI) / 2) * 0.2,
             ]}
           >
-            <boxGeometry args={[0.13, 0.16, 0.13]} />
-            <MetalMaterial color={trimColor} emissive={trimColor} finish="accent" glow={0.32} />
+            <boxGeometry args={[0.11, 0.16, 0.11]} />
+            <MetalMaterial color={palette.trim} emissive={palette.glow} finish="accent" glow={0.34} />
           </mesh>
         ))}
+        <mesh position={[-0.43, 0.62, 0]} rotation={[0, 0, 0.08]}>
+          <boxGeometry args={[0.12, 0.58, 0.38]} />
+          <MetalMaterial color={palette.armor} />
+        </mesh>
       </>
     );
   }
@@ -182,17 +211,17 @@ function PieceBody({ type, pieceColor, trimColor, crownColor, height = 0.7 }: Pi
   if (type === "n") {
     return (
       <>
-        <mesh position={[0, 0.52, 0]}>
-          <cylinderGeometry args={[0.2, 0.3, 0.6, 32]} />
-          <MetalMaterial color={pieceColor} />
+        <mesh position={[0.07, 1.22, -0.02]} rotation={[0.08, 0, -0.45]}>
+          <boxGeometry args={[0.34, 0.42, 0.22]} />
+          <MetalMaterial color={palette.armor} />
         </mesh>
-        <mesh position={[0.02, 0.95, -0.04]} rotation={[0.05, 0, -0.35]}>
-          <boxGeometry args={[0.34, 0.48, 0.2]} />
-          <MetalMaterial color={pieceColor} />
+        <mesh position={[0.21, 1.42, -0.02]} rotation={[0, 0, -0.72]}>
+          <coneGeometry args={[0.11, 0.26, 4]} />
+          <MetalMaterial color={palette.trim} emissive={palette.glow} finish="accent" glow={0.42} />
         </mesh>
-        <mesh position={[0.16, 1.14, -0.04]} rotation={[0.05, 0, -0.75]}>
-          <coneGeometry args={[0.12, 0.26, 4]} />
-          <MetalMaterial color={trimColor} emissive={trimColor} finish="accent" glow={0.38} />
+        <mesh position={[0.42, 0.73, 0.06]} rotation={[0, 0, -0.85]}>
+          <boxGeometry args={[0.08, 0.74, 0.08]} />
+          <MetalMaterial color={palette.weapon} finish="weapon" />
         </mesh>
       </>
     );
@@ -201,17 +230,17 @@ function PieceBody({ type, pieceColor, trimColor, crownColor, height = 0.7 }: Pi
   if (type === "b") {
     return (
       <>
-        <mesh position={[0, 0.52, 0]}>
-          <cylinderGeometry args={[0.18, 0.29, 0.64, 32]} />
-          <MetalMaterial color={pieceColor} />
+        <mesh position={[0, 1.22, 0]}>
+          <sphereGeometry args={[0.22, 24, 24]} />
+          <MetalMaterial color={palette.armor} />
         </mesh>
-        <mesh position={[0, 0.93, 0]}>
-          <sphereGeometry args={[0.25, 32, 32]} />
-          <MetalMaterial color={pieceColor} />
+        <mesh position={[0.02, 1.38, 0]} rotation={[0, 0, 0.45]}>
+          <boxGeometry args={[0.06, 0.36, 0.08]} />
+          <MetalMaterial color={palette.trim} emissive={palette.glow} finish="accent" glow={0.52} />
         </mesh>
-        <mesh position={[0.02, 1.12, 0]} rotation={[0, 0, 0.42]}>
-          <boxGeometry args={[0.05, 0.34, 0.08]} />
-          <MetalMaterial color={trimColor} emissive={trimColor} finish="accent" glow={0.48} />
+        <mesh position={[-0.36, 0.83, 0.03]} rotation={[0, 0, 0.72]}>
+          <boxGeometry args={[0.08, 0.78, 0.08]} />
+          <MetalMaterial color={palette.weapon} finish="weapon" />
         </mesh>
       </>
     );
@@ -220,26 +249,26 @@ function PieceBody({ type, pieceColor, trimColor, crownColor, height = 0.7 }: Pi
   if (type === "q") {
     return (
       <>
-        <mesh position={[0, 0.56, 0]}>
-          <cylinderGeometry args={[0.2, 0.31, 0.7, 36]} />
-          <MetalMaterial color={pieceColor} />
+        <mesh position={[0, 1.25, 0]}>
+          <coneGeometry args={[0.28, 0.34, 5]} />
+          <MetalMaterial color={palette.armor} />
         </mesh>
         {[0, 1, 2, 3, 4].map((index) => (
           <mesh
             key={index}
             position={[
-              Math.cos((index / 5) * Math.PI * 2) * 0.19,
-              1.1,
-              Math.sin((index / 5) * Math.PI * 2) * 0.19,
+              Math.cos((index / 5) * Math.PI * 2) * 0.2,
+              1.48,
+              Math.sin((index / 5) * Math.PI * 2) * 0.2,
             ]}
           >
-            <sphereGeometry args={[0.08, 16, 16]} />
-            <MetalMaterial color={crown} emissive={crown} finish="crown" glow={0.5} />
+            <sphereGeometry args={[0.075, 16, 16]} />
+            <MetalMaterial color={palette.weapon} emissive={palette.weapon} finish="weapon" glow={0.46} />
           </mesh>
         ))}
-        <mesh position={[0, 1.0, 0]}>
-          <coneGeometry args={[0.29, 0.38, 5]} />
-          <MetalMaterial color={pieceColor} />
+        <mesh position={[0.46, 0.76, 0]} rotation={[0, 0, -0.6]}>
+          <torusGeometry args={[0.16, 0.025, 8, 28]} />
+          <MetalMaterial color={palette.trim} emissive={palette.glow} finish="accent" glow={0.45} />
         </mesh>
       </>
     );
@@ -247,21 +276,21 @@ function PieceBody({ type, pieceColor, trimColor, crownColor, height = 0.7 }: Pi
 
   return (
     <>
-      <mesh position={[0, 0.58, 0]}>
-        <cylinderGeometry args={[0.21, 0.32, 0.72, 36]} />
-        <MetalMaterial color={pieceColor} />
-      </mesh>
-      <mesh position={[0, 1.0, 0]}>
-        <sphereGeometry args={[0.24, 32, 32]} />
-        <MetalMaterial color={pieceColor} />
-      </mesh>
       <mesh position={[0, 1.28, 0]}>
-        <boxGeometry args={[0.09, 0.34, 0.09]} />
-        <MetalMaterial color={crown} emissive={crown} finish="crown" glow={0.55} />
+        <cylinderGeometry args={[0.2, 0.24, 0.2, 6]} />
+        <MetalMaterial color={palette.armor} />
       </mesh>
-      <mesh position={[0, 1.37, 0]}>
-        <boxGeometry args={[0.28, 0.08, 0.08]} />
-        <MetalMaterial color={crown} emissive={crown} finish="crown" glow={0.55} />
+      <mesh position={[0, 1.53, 0]}>
+        <boxGeometry args={[0.09, 0.38, 0.09]} />
+        <MetalMaterial color={palette.weapon} emissive={palette.weapon} finish="weapon" glow={0.5} />
+      </mesh>
+      <mesh position={[0, 1.63, 0]}>
+        <boxGeometry args={[0.31, 0.08, 0.08]} />
+        <MetalMaterial color={palette.weapon} emissive={palette.weapon} finish="weapon" glow={0.5} />
+      </mesh>
+      <mesh position={[0.43, 0.8, 0.02]} rotation={[0, 0, -0.25]}>
+        <boxGeometry args={[0.1, 0.82, 0.08]} />
+        <MetalMaterial color={palette.weapon} finish="weapon" />
       </mesh>
     </>
   );
