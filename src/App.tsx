@@ -1,4 +1,4 @@
-import { OrbitControls } from "@react-three/drei";
+import { Environment, OrbitControls } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import { useState } from "react";
 import { playAttackSound } from "./audio";
@@ -53,8 +53,16 @@ function App() {
 
       <section className="game-stage">
         <Canvas camera={{ position: [0, 6.8, 7.5], fov: 34 }}>
+          <Environment preset="night" />
           <ambientLight intensity={0.7} />
           <directionalLight position={[3, 6, 4]} intensity={1.4} />
+          <spotLight
+            angle={0.45}
+            color="#f7ff5c"
+            intensity={1.5}
+            penumbra={0.55}
+            position={[0, 7, 1.5]}
+          />
           <pointLight position={[-4, 3, -4]} intensity={1.2} color="#41e8ff" />
           <Board
             onStatusChange={setGameStatus}

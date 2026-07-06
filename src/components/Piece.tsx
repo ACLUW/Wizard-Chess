@@ -75,16 +75,57 @@ type PiecePartProps = {
   height?: number;
 };
 
+type MetalMaterialProps = {
+  color: string;
+  emissive?: string;
+  glow?: number;
+  finish?: "body" | "accent" | "crown";
+};
+
+function MetalMaterial({
+  color,
+  emissive = "#000000",
+  glow = 0,
+  finish = "body",
+}: MetalMaterialProps) {
+  const finishSettings = {
+    body: {
+      metalness: 0.9,
+      roughness: 0.16,
+      envMapIntensity: 1.7,
+    },
+    accent: {
+      metalness: 0.78,
+      roughness: 0.12,
+      envMapIntensity: 2.1,
+    },
+    crown: {
+      metalness: 0.95,
+      roughness: 0.1,
+      envMapIntensity: 2.4,
+    },
+  };
+
+  return (
+    <meshStandardMaterial
+      color={color}
+      emissive={emissive}
+      emissiveIntensity={glow}
+      {...finishSettings[finish]}
+    />
+  );
+}
+
 function PieceBase({ pieceColor, trimColor }: PiecePartProps) {
   return (
     <>
       <mesh position={[0, 0.08, 0]}>
         <cylinderGeometry args={[0.34, 0.4, 0.16, 36]} />
-        <meshStandardMaterial color={pieceColor} metalness={0.25} roughness={0.35} />
+        <MetalMaterial color={pieceColor} />
       </mesh>
       <mesh position={[0, 0.2, 0]}>
         <torusGeometry args={[0.3, 0.035, 10, 36]} />
-        <meshStandardMaterial color={trimColor} emissive={trimColor} emissiveIntensity={0.35} />
+        <MetalMaterial color={trimColor} emissive={trimColor} finish="accent" glow={0.42} />
       </mesh>
     </>
   );
@@ -93,16 +134,18 @@ function PieceBase({ pieceColor, trimColor }: PiecePartProps) {
 function PieceBody({ type, pieceColor, trimColor, crownColor, height = 0.7 }: PiecePartProps & {
   type: PieceProps["type"];
 }) {
+  const crown = crownColor ?? trimColor;
+
   if (type === "p") {
     return (
       <>
         <mesh position={[0, height / 2 + 0.12, 0]}>
           <cylinderGeometry args={[0.2, 0.28, height, 32]} />
-          <meshStandardMaterial color={pieceColor} metalness={0.2} roughness={0.35} />
+          <MetalMaterial color={pieceColor} />
         </mesh>
         <mesh position={[0, height + 0.38, 0]}>
           <sphereGeometry args={[0.22, 32, 32]} />
-          <meshStandardMaterial color={pieceColor} metalness={0.2} roughness={0.3} />
+          <MetalMaterial color={pieceColor} />
         </mesh>
       </>
     );
@@ -113,11 +156,11 @@ function PieceBody({ type, pieceColor, trimColor, crownColor, height = 0.7 }: Pi
       <>
         <mesh position={[0, 0.48, 0]}>
           <cylinderGeometry args={[0.24, 0.3, 0.58, 36]} />
-          <meshStandardMaterial color={pieceColor} metalness={0.25} roughness={0.35} />
+          <MetalMaterial color={pieceColor} />
         </mesh>
         <mesh position={[0, 0.82, 0]}>
           <cylinderGeometry args={[0.34, 0.28, 0.18, 8]} />
-          <meshStandardMaterial color={pieceColor} metalness={0.25} roughness={0.35} />
+          <MetalMaterial color={pieceColor} />
         </mesh>
         {[0, 1, 2, 3].map((index) => (
           <mesh
@@ -129,7 +172,7 @@ function PieceBody({ type, pieceColor, trimColor, crownColor, height = 0.7 }: Pi
             ]}
           >
             <boxGeometry args={[0.13, 0.16, 0.13]} />
-            <meshStandardMaterial color={trimColor} emissive={trimColor} emissiveIntensity={0.2} />
+            <MetalMaterial color={trimColor} emissive={trimColor} finish="accent" glow={0.32} />
           </mesh>
         ))}
       </>
@@ -141,15 +184,15 @@ function PieceBody({ type, pieceColor, trimColor, crownColor, height = 0.7 }: Pi
       <>
         <mesh position={[0, 0.52, 0]}>
           <cylinderGeometry args={[0.2, 0.3, 0.6, 32]} />
-          <meshStandardMaterial color={pieceColor} metalness={0.25} roughness={0.35} />
+          <MetalMaterial color={pieceColor} />
         </mesh>
         <mesh position={[0.02, 0.95, -0.04]} rotation={[0.05, 0, -0.35]}>
           <boxGeometry args={[0.34, 0.48, 0.2]} />
-          <meshStandardMaterial color={pieceColor} metalness={0.25} roughness={0.35} />
+          <MetalMaterial color={pieceColor} />
         </mesh>
         <mesh position={[0.16, 1.14, -0.04]} rotation={[0.05, 0, -0.75]}>
           <coneGeometry args={[0.12, 0.26, 4]} />
-          <meshStandardMaterial color={trimColor} emissive={trimColor} emissiveIntensity={0.28} />
+          <MetalMaterial color={trimColor} emissive={trimColor} finish="accent" glow={0.38} />
         </mesh>
       </>
     );
@@ -160,15 +203,15 @@ function PieceBody({ type, pieceColor, trimColor, crownColor, height = 0.7 }: Pi
       <>
         <mesh position={[0, 0.52, 0]}>
           <cylinderGeometry args={[0.18, 0.29, 0.64, 32]} />
-          <meshStandardMaterial color={pieceColor} metalness={0.25} roughness={0.35} />
+          <MetalMaterial color={pieceColor} />
         </mesh>
         <mesh position={[0, 0.93, 0]}>
           <sphereGeometry args={[0.25, 32, 32]} />
-          <meshStandardMaterial color={pieceColor} metalness={0.25} roughness={0.3} />
+          <MetalMaterial color={pieceColor} />
         </mesh>
         <mesh position={[0.02, 1.12, 0]} rotation={[0, 0, 0.42]}>
           <boxGeometry args={[0.05, 0.34, 0.08]} />
-          <meshStandardMaterial color={trimColor} emissive={trimColor} emissiveIntensity={0.38} />
+          <MetalMaterial color={trimColor} emissive={trimColor} finish="accent" glow={0.48} />
         </mesh>
       </>
     );
@@ -179,7 +222,7 @@ function PieceBody({ type, pieceColor, trimColor, crownColor, height = 0.7 }: Pi
       <>
         <mesh position={[0, 0.56, 0]}>
           <cylinderGeometry args={[0.2, 0.31, 0.7, 36]} />
-          <meshStandardMaterial color={pieceColor} metalness={0.3} roughness={0.32} />
+          <MetalMaterial color={pieceColor} />
         </mesh>
         {[0, 1, 2, 3, 4].map((index) => (
           <mesh
@@ -191,16 +234,12 @@ function PieceBody({ type, pieceColor, trimColor, crownColor, height = 0.7 }: Pi
             ]}
           >
             <sphereGeometry args={[0.08, 16, 16]} />
-            <meshStandardMaterial
-              color={crownColor}
-              emissive={crownColor}
-              emissiveIntensity={0.35}
-            />
+            <MetalMaterial color={crown} emissive={crown} finish="crown" glow={0.5} />
           </mesh>
         ))}
         <mesh position={[0, 1.0, 0]}>
           <coneGeometry args={[0.29, 0.38, 5]} />
-          <meshStandardMaterial color={pieceColor} metalness={0.3} roughness={0.32} />
+          <MetalMaterial color={pieceColor} />
         </mesh>
       </>
     );
@@ -210,19 +249,19 @@ function PieceBody({ type, pieceColor, trimColor, crownColor, height = 0.7 }: Pi
     <>
       <mesh position={[0, 0.58, 0]}>
         <cylinderGeometry args={[0.21, 0.32, 0.72, 36]} />
-        <meshStandardMaterial color={pieceColor} metalness={0.3} roughness={0.32} />
+        <MetalMaterial color={pieceColor} />
       </mesh>
       <mesh position={[0, 1.0, 0]}>
         <sphereGeometry args={[0.24, 32, 32]} />
-        <meshStandardMaterial color={pieceColor} metalness={0.3} roughness={0.3} />
+        <MetalMaterial color={pieceColor} />
       </mesh>
       <mesh position={[0, 1.28, 0]}>
         <boxGeometry args={[0.09, 0.34, 0.09]} />
-        <meshStandardMaterial color={crownColor} emissive={crownColor} emissiveIntensity={0.4} />
+        <MetalMaterial color={crown} emissive={crown} finish="crown" glow={0.55} />
       </mesh>
       <mesh position={[0, 1.37, 0]}>
         <boxGeometry args={[0.28, 0.08, 0.08]} />
-        <meshStandardMaterial color={crownColor} emissive={crownColor} emissiveIntensity={0.4} />
+        <MetalMaterial color={crown} emissive={crown} finish="crown" glow={0.55} />
       </mesh>
     </>
   );
