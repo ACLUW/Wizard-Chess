@@ -1,6 +1,6 @@
 import { OrbitControls } from "@react-three/drei";
-import { Canvas } from "@react-three/fiber";
-import { useState } from "react";
+import { Canvas, useThree } from "@react-three/fiber";
+import { useEffect, useState } from "react";
 import { playAttackSound } from "./audio";
 import "./App.css";
 import Board from "./components/Board";
@@ -14,6 +14,27 @@ const pieceSymbols: Record<CapturedPiece["type"], string> = {
   q: "♛",
   k: "♚",
 };
+
+function ResponsiveCamera() {
+  const { camera, size } = useThree();
+
+  useEffect(() => {
+    const isPhone = size.width < 700;
+    const isShortScreen = size.height < 560;
+    const y = isPhone ? 8.25 : 6.8;
+    const z = isPhone ? 8.85 : 7.5;
+
+    camera.position.set(0, isShortScreen ? y + 0.7 : y, z);
+    camera.lookAt(0, 0, 0);
+
+    if ("fov" in camera) {
+      camera.fov = isPhone ? 43 : 34;
+      camera.updateProjectionMatrix();
+    }
+  }, [camera, size.height, size.width]);
+
+  return null;
+}
 
 function App() {
   const [gameStatus, setGameStatus] = useState("White to move");
@@ -52,7 +73,12 @@ function App() {
       </section>
 
       <section className="game-stage">
-        <Canvas camera={{ position: [0, 6.8, 7.5], fov: 34 }}>
+        <Canvas
+          camera={{ position: [0, 6.8, 7.5], fov: 34 }}
+          dpr={[1, 2]}
+          gl={{ antialias: true, powerPreference: "high-performance" }}
+        >
+          <ResponsiveCamera />
           <ambientLight intensity={0.7} />
           <directionalLight position={[3, 6, 4]} intensity={1.4} />
           <pointLight position={[-4, 3, -4]} intensity={1.2} color="#41e8ff" />
@@ -61,7 +87,18 @@ function App() {
             onMove={handleMove}
             resetSignal={resetSignal}
           />
-          <OrbitControls enablePan={false} />
+          <OrbitControls
+            dampingFactor={0.08}
+            enableDamping
+            enablePan={false}
+            maxDistance={11}
+            maxPolarAngle={Math.PI / 2.05}
+            minDistance={6}
+            minPolarAngle={Math.PI / 5}
+            rotateSpeed={0.7}
+            target={[0, 0, 0]}
+            zoomSpeed={0.65}
+          />
         </Canvas>
       </section>
 
@@ -98,8 +135,8 @@ function App() {
         </article>
 
         <article className="dashboard-card control-hint">
-          Tap or click one of your pieces, then tap a highlighted square. Pawn captures
-          spark; bigger captures explode.
+          Tap/click a piece, then choose a highlighted square. Drag to orbit the
+          board; pinch or scroll to zoom.
         </article>
       </section>
     </main>
