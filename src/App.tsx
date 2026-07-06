@@ -7,12 +7,12 @@ import Board from "./components/Board";
 import type { CapturedPiece, GameMove } from "./components/Board";
 
 const pieceSymbols: Record<CapturedPiece["type"], string> = {
-  p: "♟",
-  r: "♜",
-  n: "♞",
-  b: "♝",
-  q: "♛",
-  k: "♚",
+  p: "\u265F",
+  r: "\u265C",
+  n: "\u265E",
+  b: "\u265D",
+  q: "\u265B",
+  k: "\u265A",
 };
 
 function ResponsiveCamera() {
@@ -21,14 +21,15 @@ function ResponsiveCamera() {
   useEffect(() => {
     const isPhone = size.width < 700;
     const isShortScreen = size.height < 560;
-    const y = isPhone ? 8.25 : 6.8;
-    const z = isPhone ? 8.85 : 7.5;
+    const isLandscape = size.width > size.height;
+    const y = isPhone ? 9.8 : 8.15;
+    const z = isPhone ? 10.8 : 8.8;
 
-    camera.position.set(0, isShortScreen ? y + 0.7 : y, z);
+    camera.position.set(0, isShortScreen || isLandscape ? y + 0.6 : y, z);
     camera.lookAt(0, 0, 0);
 
     if ("fov" in camera) {
-      camera.fov = isPhone ? 43 : 34;
+      camera.fov = isPhone ? 48 : 39;
       camera.updateProjectionMatrix();
     }
   }, [camera, size.height, size.width]);
@@ -74,7 +75,7 @@ function App() {
 
       <section className="game-stage">
         <Canvas
-          camera={{ position: [0, 6.8, 7.5], fov: 34 }}
+          camera={{ position: [0, 8.15, 8.8], fov: 39 }}
           dpr={[1, 2]}
           gl={{ antialias: true, powerPreference: "high-performance" }}
         >
@@ -99,9 +100,9 @@ function App() {
             dampingFactor={0.08}
             enableDamping
             enablePan={false}
-            maxDistance={11}
+            maxDistance={15}
             maxPolarAngle={Math.PI / 2.05}
-            minDistance={6}
+            minDistance={7.4}
             minPolarAngle={Math.PI / 5}
             rotateSpeed={0.7}
             target={[0, 0, 0]}
