@@ -1,5 +1,24 @@
 # React + TypeScript + Vite
 
+## Wizard Chess Models
+
+The app supports production `.glb` chess piece models with procedural marble pieces as a fallback.
+
+1. Add models to `public/models`.
+2. Keep each model centered at the origin and scaled to fit within one chess square.
+3. Map model URLs in `src/pieceModelConfig.ts`, for example:
+
+```ts
+const pieceModelPaths = {
+  "white-k": "/models/white-king.glb",
+  "black-k": "/models/black-king.glb",
+};
+```
+
+If a model path is not configured, the app renders the built-in procedural marble piece.
+
+Procedural marble/onyx textures are generated in `src/materials/stoneTextures.ts` and are applied to the fallback pieces and board.
+
 This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
 
 Currently, two official plugins are available:

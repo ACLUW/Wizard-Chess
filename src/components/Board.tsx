@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Text } from "@react-three/drei";
 import { Chess } from "chess.js";
 import type { PieceSymbol, Square } from "chess.js";
 import CaptureEffect from "./CaptureEffect";
 import Piece from "./Piece";
+import { createStoneTexture, stoneTexturePresets } from "../materials/stoneTextures";
 
 export type CapturedPiece = {
   type: PieceSymbol;
@@ -71,6 +72,14 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
   const [, setPosition] = useState(chess.fen());
   const [captureAnimations, setCaptureAnimations] = useState<CaptureAnimation[]>([]);
   const [movingPiece, setMovingPiece] = useState<MovingPiece | null>(null);
+  const ivoryTileTexture = useMemo(
+    () => createStoneTexture("ivoryTile", stoneTexturePresets.ivoryTile),
+    [],
+  );
+  const blackTileTexture = useMemo(
+    () => createStoneTexture("blackTile", stoneTexturePresets.blackTile),
+    [],
+  );
 
   useEffect(() => {
     chess.reset();
@@ -115,8 +124,14 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
             handleSquarePress(square, row, col);
           }}
         >
-          <boxGeometry args={[1, 0.15, 1]} />
-          <meshStandardMaterial color={getSquareColor(square, isLight)} />
+          <boxGeometry args={[0.98, 0.12, 0.98]} />
+          <meshStandardMaterial
+            color={getSquareColor(square, isLight)}
+            envMapIntensity={1.75}
+            map={isLight ? ivoryTileTexture : blackTileTexture}
+            metalness={0.04}
+            roughness={0.1}
+          />
         </mesh>
       );
 
@@ -165,12 +180,40 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
   return (
     <group>
       <mesh position={[0, -0.1, 0]}>
-        <boxGeometry args={[9.1, 0.16, 9.1]} />
-        <meshStandardMaterial color="#070b22" metalness={0.2} roughness={0.55} />
+        <boxGeometry args={[9.35, 0.2, 9.35]} />
+        <meshStandardMaterial
+          color="#080808"
+          envMapIntensity={1.45}
+          map={blackTileTexture}
+          metalness={0.05}
+          roughness={0.16}
+        />
       </mesh>
       <mesh position={[0, 0.01, 0]}>
-        <boxGeometry args={[8.45, 0.05, 8.45]} />
-        <meshStandardMaterial color="#111a44" emissive="#071733" emissiveIntensity={0.35} />
+        <boxGeometry args={[8.55, 0.05, 8.55]} />
+        <meshStandardMaterial
+          color="#f4efe7"
+          envMapIntensity={1.2}
+          map={ivoryTileTexture}
+          metalness={0.02}
+          roughness={0.24}
+        />
+      </mesh>
+      <mesh position={[0, 0.09, 4.33]}>
+        <boxGeometry args={[8.75, 0.18, 0.16]} />
+        <meshStandardMaterial color="#111111" map={blackTileTexture} metalness={0.05} roughness={0.14} />
+      </mesh>
+      <mesh position={[0, 0.09, -4.33]}>
+        <boxGeometry args={[8.75, 0.18, 0.16]} />
+        <meshStandardMaterial color="#111111" map={blackTileTexture} metalness={0.05} roughness={0.14} />
+      </mesh>
+      <mesh position={[4.33, 0.09, 0]}>
+        <boxGeometry args={[0.16, 0.18, 8.75]} />
+        <meshStandardMaterial color="#111111" map={blackTileTexture} metalness={0.05} roughness={0.14} />
+      </mesh>
+      <mesh position={[-4.33, 0.09, 0]}>
+        <boxGeometry args={[0.16, 0.18, 8.75]} />
+        <meshStandardMaterial color="#111111" map={blackTileTexture} metalness={0.05} roughness={0.14} />
       </mesh>
       {squares}
       {labels}
@@ -192,14 +235,14 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
 
   function getSquareColor(square: Square, isLight: boolean) {
     if (selectedSquare === square) {
-      return "#f7ff5c";
+      return "#d6b45a";
     }
 
     if (legalTargets.includes(square)) {
-      return "#22ff99";
+      return "#77cfa2";
     }
 
-    return isLight ? "#41e8ff" : "#1b2464";
+    return isLight ? "#f8f4ec" : "#090909";
   }
 
   function handleSquarePress(square: Square, row: number, col: number) {
