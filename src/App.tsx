@@ -82,19 +82,20 @@ function App() {
         >
           <ResponsiveCamera />
           <Environment preset="night" />
-          <color args={["#060303"]} attach="background" />
-          <fog attach="fog" args={["#090303", 8, 18]} />
-          <ambientLight intensity={0.28} />
-          <directionalLight color="#8a3a20" position={[3, 6, 4]} intensity={0.85} />
+          <color args={["#140806"]} attach="background" />
+          <fog attach="fog" args={["#160906", 10, 24]} />
+          <ambientLight intensity={0.46} />
+          <hemisphereLight args={["#ffc48a", "#2a0d08", 0.75]} />
+          <directionalLight color="#b85b2d" position={[3, 6, 4]} intensity={1.15} />
           <spotLight
-            angle={0.56}
-            color="#ffd39a"
-            intensity={2.8}
-            penumbra={0.72}
-            position={[0, 7.2, 2.3]}
+            angle={0.68}
+            color="#ffe0b3"
+            intensity={4.1}
+            penumbra={0.78}
+            position={[0, 8.2, 2.8]}
           />
-          <pointLight position={[0, 3.2, 0]} intensity={1.1} color="#ffb15a" distance={8} />
-          <pointLight position={[-4, 2.2, -4]} intensity={0.65} color="#c33212" />
+          <pointLight position={[0, 3.8, 0]} intensity={2.1} color="#ffc06d" distance={9.5} />
+          <pointLight position={[-4, 2.2, -4]} intensity={0.95} color="#d94a18" />
           <FireArena />
           <Board
             onStatusChange={setGameStatus}

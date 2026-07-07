@@ -14,12 +14,12 @@ function FireArena() {
     <group>
       <mesh position={[0, -0.28, 0]}>
         <cylinderGeometry args={[7.4, 7.9, 0.18, 8]} />
-        <meshStandardMaterial color="#070303" roughness={0.86} />
+        <meshStandardMaterial color="#140806" emissive="#200804" emissiveIntensity={0.18} roughness={0.82} />
       </mesh>
 
       <mesh position={[0, 0.06, 0]}>
         <ringGeometry args={[5.3, 5.8, 8]} />
-        <meshStandardMaterial color="#1a0904" emissive="#4a1606" emissiveIntensity={0.5} roughness={0.9} />
+        <meshStandardMaterial color="#2a0d05" emissive="#8f2a08" emissiveIntensity={0.72} roughness={0.84} />
       </mesh>
 
       {torchPositions.map((position, index) => (
@@ -53,15 +53,15 @@ function Torch({ position }: { position: [number, number, number] }) {
         <cylinderGeometry args={[0.24, 0.18, 0.16, 20]} />
         <meshStandardMaterial color="#20100b" emissive="#321006" emissiveIntensity={0.3} roughness={0.7} />
       </mesh>
-      <pointLight color="#ff7a1f" distance={7.4} intensity={2.85} position={[0, 1.08, 0]} />
+      <pointLight color="#ff8a2a" distance={8.6} intensity={3.65} position={[0, 1.08, 0]} />
       <group ref={flameRef} position={[0, 1.05, 0]}>
         <mesh>
           <coneGeometry args={[0.18, 0.62, 18]} />
-          <meshBasicMaterial color="#ff6a00" transparent opacity={0.86} />
+          <meshBasicMaterial color="#ff7417" transparent opacity={0.9} />
         </mesh>
         <mesh position={[0, 0.08, 0]}>
           <coneGeometry args={[0.1, 0.42, 18]} />
-          <meshBasicMaterial color="#ffd05a" transparent opacity={0.78} />
+          <meshBasicMaterial color="#ffe08a" transparent opacity={0.84} />
         </mesh>
       </group>
     </group>
