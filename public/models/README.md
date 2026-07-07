@@ -20,3 +20,10 @@ Recommended names:
 After adding files, map them in `src/pieceModelConfig.ts`.
 
 Keep each model centered at the origin, standing on the board at `y = 0`, and scaled to fit inside one chess square.
+
+Each model config supports:
+
+- `path`: URL under `public`, for example `/models/white-king.glb`
+- `scale`: single number or `[x, y, z]`
+- `offset`: `[x, y, z]` position tweak
+- `rotation`: `[x, y, z]` Euler rotation in radians

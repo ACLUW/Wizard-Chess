@@ -9,9 +9,13 @@ The app supports production `.glb` chess piece models with procedural marble pie
 3. Map model URLs in `src/pieceModelConfig.ts`, for example:
 
 ```ts
-const pieceModelPaths = {
-  "white-k": "/models/white-king.glb",
-  "black-k": "/models/black-king.glb",
+const pieceModelConfigs = {
+  "white-k": {
+    path: "/models/white-king.glb",
+    scale: 0.82,
+    offset: [0, 0, 0],
+    rotation: [0, Math.PI, 0],
+  },
 };
 ```
 

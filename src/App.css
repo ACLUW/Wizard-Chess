@@ -5,8 +5,9 @@
 body {
   margin: 0;
   background:
-    radial-gradient(circle at top, #253bff 0%, transparent 30%),
-    linear-gradient(135deg, #050816, #0b1026 45%, #14001f);
+    radial-gradient(circle at top, rgba(139, 32, 8, 0.35) 0%, transparent 30%),
+    radial-gradient(circle at bottom, rgba(255, 94, 20, 0.16), transparent 28%),
+    linear-gradient(135deg, #050202, #120606 45%, #050101);
   color: white;
   font-family: Arial, sans-serif;
   overflow: hidden;
@@ -32,7 +33,7 @@ body {
   padding: clamp(8px, 1.5vw, 14px) clamp(10px, 2vw, 18px);
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 22px;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(20, 7, 4, 0.72);
   backdrop-filter: blur(14px);
   box-shadow: 0 20px 70px rgba(0, 0, 0, 0.45);
 }
@@ -44,9 +45,9 @@ body {
   border-radius: 999px;
   padding: 12px 18px;
   color: #061022;
-  background: linear-gradient(135deg, #57f7ff, #f7ff5c);
+  background: linear-gradient(135deg, #ff7a1f, #ffd05a);
   font-weight: 800;
-  box-shadow: 0 0 28px rgba(87, 247, 255, 0.28);
+  box-shadow: 0 0 28px rgba(255, 106, 0, 0.28);
 }
 
 .reset-button:active {
@@ -55,7 +56,7 @@ body {
 
 .eyebrow {
   margin: 0 0 6px;
-  color: #57f7ff;
+  color: #ff9a3d;
   font-weight: 700;
   letter-spacing: 3px;
   text-transform: uppercase;
@@ -78,10 +79,10 @@ body {
   border-radius: 28px;
   overflow: hidden;
   background:
-    radial-gradient(circle at center, rgba(87, 247, 255, 0.18), transparent 45%),
-    rgba(0, 0, 0, 0.28);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  box-shadow: inset 0 0 80px rgba(87, 247, 255, 0.08);
+    radial-gradient(circle at center, rgba(255, 106, 0, 0.16), transparent 48%),
+    rgba(0, 0, 0, 0.54);
+  border: 1px solid rgba(255, 111, 24, 0.18);
+  box-shadow: inset 0 0 90px rgba(255, 80, 0, 0.08);
   touch-action: none;
   user-select: none;
 }
@@ -106,15 +107,15 @@ body {
   margin: 0 auto;
   width: 100%;
   padding: clamp(8px, 1.3vw, 10px) clamp(10px, 1.6vw, 14px);
-  color: #d8dcff;
-  border: 1px solid rgba(87, 247, 255, 0.22);
+  color: #f1d6bd;
+  border: 1px solid rgba(255, 122, 31, 0.24);
   border-radius: 18px;
-  background: rgba(5, 8, 22, 0.55);
+  background: rgba(15, 5, 3, 0.66);
 }
 
 .dashboard-card h2 {
   margin: 0 0 6px;
-  color: #57f7ff;
+  color: #ff9a3d;
   font-size: 13px;
   letter-spacing: 1.8px;
   text-transform: uppercase;

@@ -4,7 +4,7 @@ import { Suspense, useEffect, useMemo, useRef } from "react";
 import type { Group, Object3D } from "three";
 import { Vector3 } from "three";
 import { createStoneTexture, stoneTexturePresets } from "../materials/stoneTextures";
-import { getPieceModelPath } from "../pieceModelConfig";
+import { getPieceModelConfig } from "../pieceModelConfig";
 import type { PieceColor, PieceKind } from "../pieceModelConfig";
 
 type PieceProps = {
@@ -35,7 +35,7 @@ function Piece({ type, color, position, previousPosition, onPress }: PieceProps)
   const groupRef = useRef<Group>(null);
   const targetRef = useRef(new Vector3(...position));
   const palette = getPalette(color);
-  const modelPath = getPieceModelPath(type, color);
+  const modelConfig = getPieceModelConfig(type, color);
 
   useEffect(() => {
     if (!groupRef.current || !previousPosition) {
@@ -67,9 +67,14 @@ function Piece({ type, color, position, previousPosition, onPress }: PieceProps)
         onPress?.();
       }}
     >
-      {modelPath ? (
+      {modelConfig ? (
         <Suspense fallback={<ProceduralMarblePiece type={type} palette={palette} />}>
-          <LoadedModelPiece modelPath={modelPath} />
+          <LoadedModelPiece
+            modelPath={modelConfig.path}
+            offset={modelConfig.offset}
+            rotation={modelConfig.rotation}
+            scale={modelConfig.scale}
+          />
         </Suspense>
       ) : (
         <ProceduralMarblePiece type={type} palette={palette} />
@@ -78,11 +83,28 @@ function Piece({ type, color, position, previousPosition, onPress }: PieceProps)
   );
 }
 
-function LoadedModelPiece({ modelPath }: { modelPath: string }) {
+function LoadedModelPiece({
+  modelPath,
+  offset,
+  rotation,
+  scale,
+}: {
+  modelPath: string;
+  offset: [number, number, number];
+  rotation: [number, number, number];
+  scale: number | [number, number, number];
+}) {
   const { scene } = useGLTF(modelPath);
   const clonedScene = useMemo<Object3D>(() => scene.clone(true), [scene]);
 
-  return <primitive object={clonedScene} scale={[1, 1, 1]} />;
+  return (
+    <primitive
+      object={clonedScene}
+      position={offset}
+      rotation={rotation}
+      scale={typeof scale === "number" ? [scale, scale, scale] : scale}
+    />
+  );
 }
 
 function ProceduralMarblePiece({ type, palette }: { type: PieceKind; palette: MarblePalette }) {
@@ -126,10 +148,10 @@ function StoneMaterial({
     [textureKey],
   );
   const settings = {
-    stone: { metalness: 0.05, roughness: 0.2, envMapIntensity: 1.25 },
-    polished: { metalness: 0.08, roughness: 0.12, envMapIntensity: 1.75 },
-    shadow: { metalness: 0.03, roughness: 0.28, envMapIntensity: 0.9 },
-    accent: { metalness: 0.08, roughness: 0.16, envMapIntensity: 1.65 },
+    stone: { metalness: 0.02, roughness: 0.48, envMapIntensity: 0.55 },
+    polished: { metalness: 0.03, roughness: 0.34, envMapIntensity: 0.72 },
+    shadow: { metalness: 0.01, roughness: 0.58, envMapIntensity: 0.38 },
+    accent: { metalness: 0.03, roughness: 0.4, envMapIntensity: 0.65 },
   }[finish];
 
   return (
