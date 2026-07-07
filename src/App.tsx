@@ -72,25 +72,27 @@ function App() {
           <p>{gameStatus}</p>
         </div>
 
-        <button className="reset-button" type="button" onClick={resetGame}>
-          New Game
-        </button>
-      </section>
+        <div className="hero-controls">
+          <div className="lighting-panel" aria-label="Stage lighting controls">
+            <label htmlFor="stage-lighting">
+              <span>Stage Lighting</span>
+              <strong>{lightPercent}%</strong>
+            </label>
+            <input
+              id="stage-lighting"
+              max="1.45"
+              min="0.55"
+              onChange={(event) => setStageLighting(Number(event.target.value))}
+              step="0.05"
+              type="range"
+              value={stageLighting}
+            />
+          </div>
 
-      <section className="lighting-panel" aria-label="Stage lighting controls">
-        <label htmlFor="stage-lighting">
-          <span>Stage Lighting</span>
-          <strong>{lightPercent}%</strong>
-        </label>
-        <input
-          id="stage-lighting"
-          max="1.45"
-          min="0.55"
-          onChange={(event) => setStageLighting(Number(event.target.value))}
-          step="0.05"
-          type="range"
-          value={stageLighting}
-        />
+          <button className="reset-button" type="button" onClick={resetGame}>
+            New Game
+          </button>
+        </div>
       </section>
 
       <section className="game-stage">

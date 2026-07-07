@@ -254,3 +254,53 @@ body {
   cursor: pointer;
   width: 100%;
 }
+
+.hero-controls {
+  align-items: stretch;
+  display: grid;
+  gap: 0.8rem;
+  min-width: min(360px, 100%);
+}
+
+.hero-panel .lighting-panel {
+  border-color: rgba(255, 202, 128, 0.48);
+  box-shadow:
+    0 0 0 1px rgba(255, 128, 48, 0.12),
+    0 18px 46px rgba(0, 0, 0, 0.34),
+    inset 0 0 32px rgba(255, 116, 28, 0.18);
+  margin: 0;
+  max-width: none;
+  min-width: min(340px, calc(100vw - 2rem));
+  padding: 0.8rem 0.95rem;
+}
+
+.hero-panel .lighting-panel input {
+  height: 28px;
+}
+
+.hero-panel .lighting-panel input::-webkit-slider-runnable-track {
+  background: linear-gradient(90deg, #5c1b0c, #ff8c36, #ffe0a3);
+  border-radius: 999px;
+  height: 8px;
+}
+
+.hero-panel .lighting-panel input::-webkit-slider-thumb {
+  margin-top: -6px;
+}
+
+.hero-panel .lighting-panel input::-moz-range-track {
+  background: linear-gradient(90deg, #5c1b0c, #ff8c36, #ffe0a3);
+  border-radius: 999px;
+  height: 8px;
+}
+
+@media (max-width: 700px) {
+  .hero-controls {
+    width: 100%;
+  }
+
+  .hero-panel .lighting-panel {
+    min-width: 0;
+    width: 100%;
+  }
+}
