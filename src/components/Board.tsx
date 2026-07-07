@@ -242,7 +242,7 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
       return "#77cfa2";
     }
 
-    return isLight ? "#f8f4ec" : "#090909";
+    return isLight ? "#f2e7d5" : "#16100c";
   }
 
   function handleSquarePress(square: Square, row: number, col: number) {

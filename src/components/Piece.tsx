@@ -129,10 +129,10 @@ function getPalette(color: PieceColor): MarblePalette {
   }
 
   return {
-    stone: "#151515",
-    shadow: "#050505",
-    carving: "#2a2a2a",
-    accent: "#3d3d3d",
+    stone: "#2f2925",
+    shadow: "#120c09",
+    carving: "#6b5a4a",
+    accent: "#8b6a46",
   };
 }
 
@@ -250,12 +250,16 @@ function PieceCrown({ type, palette }: { type: PieceKind; palette: MarblePalette
   if (type === "p") {
     return (
       <>
-        <mesh position={[0, 1.18, 0]}>
-          <sphereGeometry args={[0.19, 32, 24]} />
+        <mesh position={[0, 0.98, 0]}>
+          <cylinderGeometry args={[0.16, 0.2, 0.18, 28]} />
           <StoneMaterial color={palette.stone} finish="polished" />
         </mesh>
-        <mesh position={[0, 1.39, 0]}>
-          <sphereGeometry args={[0.07, 18, 14]} />
+        <mesh position={[0, 1.18, 0]}>
+          <sphereGeometry args={[0.16, 30, 20]} />
+          <StoneMaterial color={palette.stone} finish="polished" />
+        </mesh>
+        <mesh position={[0, 1.34, 0]}>
+          <sphereGeometry args={[0.045, 16, 12]} />
           <StoneMaterial color={palette.carving} finish="accent" />
         </mesh>
       </>
@@ -289,20 +293,28 @@ function PieceCrown({ type, palette }: { type: PieceKind; palette: MarblePalette
   if (type === "n") {
     return (
       <>
-        <mesh position={[0.03, 1.16, -0.02]} rotation={[0.05, 0, -0.28]}>
-          <boxGeometry args={[0.32, 0.45, 0.22]} />
+        <mesh position={[0.02, 1.12, -0.02]} rotation={[0.06, 0, -0.22]}>
+          <boxGeometry args={[0.26, 0.34, 0.2]} />
           <StoneMaterial color={palette.stone} finish="polished" />
         </mesh>
-        <mesh position={[0.16, 1.36, -0.03]} rotation={[0, 0, -0.78]}>
-          <coneGeometry args={[0.12, 0.24, 4]} />
+        <mesh position={[0.18, 1.32, -0.02]} rotation={[0, 0, -0.8]}>
+          <coneGeometry args={[0.1, 0.22, 4]} />
           <StoneMaterial color={palette.stone} finish="polished" />
         </mesh>
-        <mesh position={[0.24, 1.18, 0.1]}>
+        <mesh position={[0.22, 1.17, 0.1]}>
           <sphereGeometry args={[0.035, 12, 10]} />
           <StoneMaterial color={palette.shadow} finish="shadow" />
         </mesh>
-        <mesh position={[-0.08, 1.1, 0]}>
-          <torusGeometry args={[0.18, 0.02, 8, 28, Math.PI * 1.3]} />
+        <mesh position={[0.25, 1.06, 0.02]} rotation={[0, 0, -0.3]}>
+          <boxGeometry args={[0.16, 0.055, 0.09]} />
+          <StoneMaterial color={palette.shadow} finish="shadow" />
+        </mesh>
+        <mesh position={[-0.12, 1.04, 0]}>
+          <torusGeometry args={[0.2, 0.018, 8, 28, Math.PI * 1.25]} />
+          <StoneMaterial color={palette.carving} finish="accent" />
+        </mesh>
+        <mesh position={[-0.18, 1.2, 0.02]} rotation={[0, 0, 0.7]}>
+          <coneGeometry args={[0.06, 0.18, 3]} />
           <StoneMaterial color={palette.carving} finish="accent" />
         </mesh>
       </>
@@ -312,17 +324,25 @@ function PieceCrown({ type, palette }: { type: PieceKind; palette: MarblePalette
   if (type === "b") {
     return (
       <>
+        <mesh position={[0, 1.08, 0]}>
+          <cylinderGeometry args={[0.18, 0.22, 0.16, 34]} />
+          <StoneMaterial color={palette.stone} finish="polished" />
+        </mesh>
         <mesh position={[0, 1.2, 0]}>
-          <sphereGeometry args={[0.23, 32, 24]} />
+          <sphereGeometry args={[0.2, 32, 24]} />
           <StoneMaterial color={palette.stone} finish="polished" />
         </mesh>
         <mesh position={[0.02, 1.43, 0]} rotation={[0, 0, 0.4]}>
-          <boxGeometry args={[0.06, 0.34, 0.08]} />
+          <boxGeometry args={[0.055, 0.42, 0.08]} />
           <StoneMaterial color={palette.shadow} finish="shadow" />
         </mesh>
-        <mesh position={[0, 1.42, 0]}>
-          <coneGeometry args={[0.16, 0.22, 32]} />
+        <mesh position={[0, 1.48, 0]}>
+          <coneGeometry args={[0.15, 0.3, 32]} />
           <StoneMaterial color={palette.stone} finish="polished" />
+        </mesh>
+        <mesh position={[0, 1.65, 0]}>
+          <sphereGeometry args={[0.045, 14, 10]} />
+          <StoneMaterial color={palette.carving} finish="accent" />
         </mesh>
       </>
     );
