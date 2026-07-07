@@ -64,7 +64,7 @@ export function createStoneTexture(key: string, options: StoneTextureOptions) {
   texture.colorSpace = SRGBColorSpace;
   texture.wrapS = RepeatWrapping;
   texture.wrapT = RepeatWrapping;
-  texture.repeat.set(1.5, 1.5);
+  texture.repeat.set(2.2, 2.2);
   texture.needsUpdate = true;
   textureCache.set(key, texture);
 

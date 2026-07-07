@@ -148,10 +148,10 @@ function StoneMaterial({
     [textureKey],
   );
   const settings = {
-    stone: { metalness: 0.05, roughness: 0.2, envMapIntensity: 1.25 },
-    polished: { metalness: 0.08, roughness: 0.12, envMapIntensity: 1.75 },
-    shadow: { metalness: 0.03, roughness: 0.28, envMapIntensity: 0.9 },
-    accent: { metalness: 0.08, roughness: 0.16, envMapIntensity: 1.65 },
+    stone: { metalness: 0.02, roughness: 0.48, envMapIntensity: 0.55 },
+    polished: { metalness: 0.03, roughness: 0.34, envMapIntensity: 0.72 },
+    shadow: { metalness: 0.01, roughness: 0.58, envMapIntensity: 0.38 },
+    accent: { metalness: 0.03, roughness: 0.4, envMapIntensity: 0.65 },
   }[finish];
 
   return (

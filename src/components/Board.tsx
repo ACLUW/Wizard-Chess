@@ -127,10 +127,10 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
           <boxGeometry args={[0.98, 0.12, 0.98]} />
           <meshStandardMaterial
             color={getSquareColor(square, isLight)}
-            envMapIntensity={1.75}
+            envMapIntensity={0.55}
             map={isLight ? ivoryTileTexture : blackTileTexture}
-            metalness={0.04}
-            roughness={0.1}
+            metalness={0.01}
+            roughness={0.42}
           />
         </mesh>
       );
@@ -183,37 +183,37 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
         <boxGeometry args={[9.35, 0.2, 9.35]} />
         <meshStandardMaterial
           color="#080808"
-          envMapIntensity={1.45}
+          envMapIntensity={0.45}
           map={blackTileTexture}
-          metalness={0.05}
-          roughness={0.16}
+          metalness={0.01}
+          roughness={0.48}
         />
       </mesh>
       <mesh position={[0, 0.01, 0]}>
         <boxGeometry args={[8.55, 0.05, 8.55]} />
         <meshStandardMaterial
           color="#f4efe7"
-          envMapIntensity={1.2}
+          envMapIntensity={0.42}
           map={ivoryTileTexture}
-          metalness={0.02}
-          roughness={0.24}
+          metalness={0.01}
+          roughness={0.5}
         />
       </mesh>
       <mesh position={[0, 0.09, 4.33]}>
         <boxGeometry args={[8.75, 0.18, 0.16]} />
-        <meshStandardMaterial color="#111111" map={blackTileTexture} metalness={0.05} roughness={0.14} />
+        <meshStandardMaterial color="#111111" map={blackTileTexture} metalness={0.01} roughness={0.55} />
       </mesh>
       <mesh position={[0, 0.09, -4.33]}>
         <boxGeometry args={[8.75, 0.18, 0.16]} />
-        <meshStandardMaterial color="#111111" map={blackTileTexture} metalness={0.05} roughness={0.14} />
+        <meshStandardMaterial color="#111111" map={blackTileTexture} metalness={0.01} roughness={0.55} />
       </mesh>
       <mesh position={[4.33, 0.09, 0]}>
         <boxGeometry args={[0.16, 0.18, 8.75]} />
-        <meshStandardMaterial color="#111111" map={blackTileTexture} metalness={0.05} roughness={0.14} />
+        <meshStandardMaterial color="#111111" map={blackTileTexture} metalness={0.01} roughness={0.55} />
       </mesh>
       <mesh position={[-4.33, 0.09, 0]}>
         <boxGeometry args={[0.16, 0.18, 8.75]} />
-        <meshStandardMaterial color="#111111" map={blackTileTexture} metalness={0.05} roughness={0.14} />
+        <meshStandardMaterial color="#111111" map={blackTileTexture} metalness={0.01} roughness={0.55} />
       </mesh>
       {squares}
       {labels}

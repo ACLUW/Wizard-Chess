@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { playAttackSound } from "./audio";
 import "./App.css";
 import Board from "./components/Board";
+import FireArena from "./components/FireArena";
 import type { CapturedPiece, GameMove } from "./components/Board";
 
 const pieceSymbols: Record<CapturedPiece["type"], string> = {
@@ -80,17 +81,20 @@ function App() {
           gl={{ antialias: true, powerPreference: "high-performance" }}
         >
           <ResponsiveCamera />
-          <Environment preset="studio" />
-          <ambientLight intensity={0.55} />
-          <directionalLight position={[3, 6, 4]} intensity={1.8} />
+          <Environment preset="night" />
+          <color args={["#060303"]} attach="background" />
+          <fog attach="fog" args={["#090303", 8, 18]} />
+          <ambientLight intensity={0.18} />
+          <directionalLight color="#5c2214" position={[3, 6, 4]} intensity={0.55} />
           <spotLight
-            angle={0.45}
-            color="#fff4dc"
-            intensity={2}
-            penumbra={0.55}
-            position={[0, 7, 1.5]}
+            angle={0.62}
+            color="#ff8a2a"
+            intensity={1.25}
+            penumbra={0.8}
+            position={[0, 6.2, 1.8]}
           />
-          <pointLight position={[-4, 3, -4]} intensity={1.2} color="#41e8ff" />
+          <pointLight position={[-4, 2.2, -4]} intensity={0.45} color="#9b1b10" />
+          <FireArena />
           <Board
             onStatusChange={setGameStatus}
             onMove={handleMove}
