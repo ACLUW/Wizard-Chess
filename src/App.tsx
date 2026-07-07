@@ -84,16 +84,17 @@ function App() {
           <Environment preset="night" />
           <color args={["#060303"]} attach="background" />
           <fog attach="fog" args={["#090303", 8, 18]} />
-          <ambientLight intensity={0.18} />
-          <directionalLight color="#5c2214" position={[3, 6, 4]} intensity={0.55} />
+          <ambientLight intensity={0.28} />
+          <directionalLight color="#8a3a20" position={[3, 6, 4]} intensity={0.85} />
           <spotLight
-            angle={0.62}
-            color="#ff8a2a"
-            intensity={1.25}
-            penumbra={0.8}
-            position={[0, 6.2, 1.8]}
+            angle={0.56}
+            color="#ffd39a"
+            intensity={2.8}
+            penumbra={0.72}
+            position={[0, 7.2, 2.3]}
           />
-          <pointLight position={[-4, 2.2, -4]} intensity={0.45} color="#9b1b10" />
+          <pointLight position={[0, 3.2, 0]} intensity={1.1} color="#ffb15a" distance={8} />
+          <pointLight position={[-4, 2.2, -4]} intensity={0.65} color="#c33212" />
           <FireArena />
           <Board
             onStatusChange={setGameStatus}

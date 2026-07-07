@@ -19,7 +19,7 @@ function FireArena() {
 
       <mesh position={[0, 0.06, 0]}>
         <ringGeometry args={[5.3, 5.8, 8]} />
-        <meshStandardMaterial color="#1a0904" emissive="#3c1005" emissiveIntensity={0.35} roughness={0.9} />
+        <meshStandardMaterial color="#1a0904" emissive="#4a1606" emissiveIntensity={0.5} roughness={0.9} />
       </mesh>
 
       {torchPositions.map((position, index) => (
@@ -53,7 +53,7 @@ function Torch({ position }: { position: [number, number, number] }) {
         <cylinderGeometry args={[0.24, 0.18, 0.16, 20]} />
         <meshStandardMaterial color="#20100b" emissive="#321006" emissiveIntensity={0.3} roughness={0.7} />
       </mesh>
-      <pointLight color="#ff7a1f" distance={6.2} intensity={2.2} position={[0, 1.08, 0]} />
+      <pointLight color="#ff7a1f" distance={7.4} intensity={2.85} position={[0, 1.08, 0]} />
       <group ref={flameRef} position={[0, 1.05, 0]}>
         <mesh>
           <coneGeometry args={[0.18, 0.62, 18]} />
