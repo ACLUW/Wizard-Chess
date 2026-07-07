@@ -9,27 +9,37 @@ const torchPositions: Array<[number, number, number]> = [
   [5.4, 0.1, 5.4],
 ];
 
-function FireArena() {
+type FireArenaProps = {
+  lighting?: number;
+};
+
+function FireArena({ lighting = 1 }: FireArenaProps) {
   return (
     <group>
       <mesh position={[0, -0.28, 0]}>
         <cylinderGeometry args={[7.4, 7.9, 0.18, 8]} />
-        <meshStandardMaterial color="#140806" emissive="#200804" emissiveIntensity={0.18} roughness={0.82} />
+        <meshStandardMaterial color="#140806" emissive="#200804" emissiveIntensity={0.18 * lighting} roughness={0.82} />
       </mesh>
 
       <mesh position={[0, 0.06, 0]}>
         <ringGeometry args={[5.3, 5.8, 8]} />
-        <meshStandardMaterial color="#2a0d05" emissive="#8f2a08" emissiveIntensity={0.72} roughness={0.84} />
+        <meshStandardMaterial color="#2a0d05" emissive="#8f2a08" emissiveIntensity={0.72 * lighting} roughness={0.84} />
       </mesh>
 
       {torchPositions.map((position, index) => (
-        <Torch key={index} position={position} />
+        <Torch key={index} lighting={lighting} position={position} />
       ))}
     </group>
   );
 }
 
-function Torch({ position }: { position: [number, number, number] }) {
+function Torch({
+  lighting,
+  position,
+}: {
+  lighting: number;
+  position: [number, number, number];
+}) {
   const flameRef = useRef<Group>(null);
   const phase = useMemo(() => Math.random() * Math.PI * 2, []);
 
@@ -53,7 +63,7 @@ function Torch({ position }: { position: [number, number, number] }) {
         <cylinderGeometry args={[0.24, 0.18, 0.16, 20]} />
         <meshStandardMaterial color="#20100b" emissive="#321006" emissiveIntensity={0.3} roughness={0.7} />
       </mesh>
-      <pointLight color="#ff8a2a" distance={8.6} intensity={3.65} position={[0, 1.08, 0]} />
+      <pointLight color="#ff8a2a" distance={8.6} intensity={3.65 * lighting} position={[0, 1.08, 0]} />
       <group ref={flameRef} position={[0, 1.05, 0]}>
         <mesh>
           <coneGeometry args={[0.18, 0.62, 18]} />

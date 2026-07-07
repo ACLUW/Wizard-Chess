@@ -43,6 +43,7 @@ function App() {
   const [moves, setMoves] = useState<GameMove[]>([]);
   const [captures, setCaptures] = useState<CapturedPiece[]>([]);
   const [resetSignal, setResetSignal] = useState(0);
+  const [stageLighting, setStageLighting] = useState(1);
 
   function handleMove(move: GameMove) {
     playAttackSound(move.effectKind);
@@ -60,6 +61,8 @@ function App() {
     setResetSignal((signal) => signal + 1);
   }
 
+  const lightPercent = Math.round(stageLighting * 100);
+
   return (
     <main className="game-page">
       <section className="hero-panel">
@@ -74,6 +77,22 @@ function App() {
         </button>
       </section>
 
+      <section className="lighting-panel" aria-label="Stage lighting controls">
+        <label htmlFor="stage-lighting">
+          <span>Stage Lighting</span>
+          <strong>{lightPercent}%</strong>
+        </label>
+        <input
+          id="stage-lighting"
+          max="1.45"
+          min="0.55"
+          onChange={(event) => setStageLighting(Number(event.target.value))}
+          step="0.05"
+          type="range"
+          value={stageLighting}
+        />
+      </section>
+
       <section className="game-stage">
         <Canvas
           camera={{ position: [0, 8.15, 8.8], fov: 39 }}
@@ -84,19 +103,19 @@ function App() {
           <Environment preset="night" />
           <color args={["#140806"]} attach="background" />
           <fog attach="fog" args={["#160906", 10, 24]} />
-          <ambientLight intensity={0.46} />
-          <hemisphereLight args={["#ffc48a", "#2a0d08", 0.75]} />
-          <directionalLight color="#b85b2d" position={[3, 6, 4]} intensity={1.15} />
+          <ambientLight intensity={0.46 * stageLighting} />
+          <hemisphereLight args={["#ffc48a", "#2a0d08", 0.75 * stageLighting]} />
+          <directionalLight color="#b85b2d" position={[3, 6, 4]} intensity={1.15 * stageLighting} />
           <spotLight
             angle={0.68}
             color="#ffe0b3"
-            intensity={4.1}
+            intensity={4.1 * stageLighting}
             penumbra={0.78}
             position={[0, 8.2, 2.8]}
           />
-          <pointLight position={[0, 3.8, 0]} intensity={2.1} color="#ffc06d" distance={9.5} />
-          <pointLight position={[-4, 2.2, -4]} intensity={0.95} color="#d94a18" />
-          <FireArena />
+          <pointLight position={[0, 3.8, 0]} intensity={2.1 * stageLighting} color="#ffc06d" distance={9.5} />
+          <pointLight position={[-4, 2.2, -4]} intensity={0.95 * stageLighting} color="#d94a18" />
+          <FireArena lighting={stageLighting} />
           <Board
             onStatusChange={setGameStatus}
             onMove={handleMove}
