@@ -117,6 +117,7 @@ function App() {
   const [captures, setCaptures] = useState<CapturedPiece[]>([]);
   const [resetSignal, setResetSignal] = useState(0);
   const [stageLighting, setStageLighting] = useState(1);
+  const [isTutorialOpen, setIsTutorialOpen] = useState(false);
   const [cameraImpact, setCameraImpact] = useState<CameraImpact>({
     id: 0,
     duration: 0,
@@ -321,10 +322,74 @@ function App() {
         </article>
 
         <article className="dashboard-card control-hint">
-          Tap/click a piece, then choose a highlighted square. Drag to orbit the
-          board; pinch or scroll to zoom.
+          <h2>Need Help?</h2>
+          <p>New to chess or the arena effects?</p>
+          <button className="hint-button" type="button" onClick={() => setIsTutorialOpen(true)}>
+            Open Beginner Guide
+          </button>
         </article>
       </section>
+
+      {isTutorialOpen && (
+        <section
+          aria-labelledby="tutorial-title"
+          aria-modal="true"
+          className="tutorial-backdrop"
+          role="dialog"
+        >
+          <div className="tutorial-panel">
+            <button
+              aria-label="Close tutorial"
+              className="tutorial-close"
+              type="button"
+              onClick={() => setIsTutorialOpen(false)}
+            >
+              ×
+            </button>
+
+            <p className="eyebrow">Beginner Guide</p>
+            <h2 id="tutorial-title">Welcome to Wizard Chess</h2>
+            <p className="tutorial-intro">
+              Play normal chess rules on a dramatic 3D arena. Select a piece,
+              follow the highlighted legal moves, and use captures to trigger
+              sparks, blasts, and magical attack trails.
+            </p>
+
+            <div className="tutorial-grid">
+              <article>
+                <strong>1. Select</strong>
+                <p>Tap or click one of your pieces. Gold means selected.</p>
+              </article>
+              <article>
+                <strong>2. Move</strong>
+                <p>Green squares are legal moves. Orange squares are captures.</p>
+              </article>
+              <article>
+                <strong>3. Capture</strong>
+                <p>Capture higher-value pieces for stronger effects and camera impact.</p>
+              </article>
+              <article>
+                <strong>4. Check</strong>
+                <p>A red aura warns when a king is under attack.</p>
+              </article>
+              <article>
+                <strong>5. Promote</strong>
+                <p>When a pawn reaches the far side, choose Queen, Rook, Bishop, or Knight.</p>
+              </article>
+              <article>
+                <strong>6. Win</strong>
+                <p>Checkmate the enemy king to end the battle.</p>
+              </article>
+            </div>
+
+            <div className="tutorial-tips">
+              <span>Drag to orbit</span>
+              <span>Scroll or pinch to zoom</span>
+              <span>Use New Game to reset</span>
+            </div>
+          </div>
+        </section>
+      )}
     </main>
   );
 }
