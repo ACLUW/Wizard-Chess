@@ -20,6 +20,8 @@ export type GameMove = {
   effectKind: AttackEffectKind;
   outcome?: "check" | "checkmate" | "draw";
   captured?: CapturedPiece;
+  capturedSquare?: Square;
+  captureSignificance?: number;
 };
 
 type BoardProps = {
@@ -32,6 +34,7 @@ type CaptureAnimation = {
   id: number;
   kind: Exclude<AttackEffectKind, "move">;
   position: [number, number, number];
+  intensity: number;
 };
 
 type AttackTrailAnimation = {
@@ -53,6 +56,7 @@ type PendingPromotion = {
 type MovingPiece = {
   to: Square;
   fromPosition: [number, number, number];
+  motionKind: "move" | "attack";
 };
 
 type LastMove = {
@@ -68,6 +72,15 @@ const pieceCaptureEffects: Record<PieceSymbol, Exclude<AttackEffectKind, "move">
   r: "shockwave",
   q: "inferno",
   k: "royal",
+};
+
+const pieceCaptureValues: Record<PieceSymbol, number> = {
+  p: 1,
+  n: 3,
+  b: 3,
+  r: 5,
+  q: 9,
+  k: 12,
 };
 
 const promotionOptions: Array<{ type: PromotionPiece; label: string; symbol: string }> = [
@@ -90,6 +103,19 @@ function squareToPosition(square: Square): [number, number, number] {
   const row = 8 - Number(square[1]);
 
   return toPosition(row, col);
+}
+
+function getCaptureSignificance(piece: PieceSymbol | undefined, row: number, col: number) {
+  if (!piece) {
+    return 0;
+  }
+
+  const centerDistance = Math.abs(row - 3.5) + Math.abs(col - 3.5);
+  const centerControl = Math.max(0, 1 - centerDistance / 7);
+  const backRankPressure = row === 0 || row === 7 ? 0.12 : 0;
+  const roleWeight = pieceCaptureValues[piece] / pieceCaptureValues.k;
+
+  return Math.min(1, roleWeight * 0.82 + centerControl * 0.18 + backRankPressure);
 }
 
 function getStatus(chess: Chess) {
@@ -115,6 +141,7 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
   const [movingPiece, setMovingPiece] = useState<MovingPiece | null>(null);
   const [pendingPromotion, setPendingPromotion] = useState<PendingPromotion | null>(null);
   const [lastMove, setLastMove] = useState<LastMove | null>(null);
+  const [hoveredSquare, setHoveredSquare] = useState<Square | null>(null);
   const ivoryTileTexture = useMemo(
     () => createStoneTexture("ivoryTile", stoneTexturePresets.ivoryTile),
     [],
@@ -132,6 +159,7 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
     setMovingPiece(null);
     setPendingPromotion(null);
     setLastMove(null);
+    setHoveredSquare(null);
     setPosition(chess.fen());
     onStatusChange(getStatus(chess));
   }, [chess, onStatusChange, resetSignal]);
@@ -146,9 +174,11 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
     return () => window.clearTimeout(timeoutId);
   }, [movingPiece]);
 
-  const legalTargets = selectedSquare
-    ? chess.moves({ square: selectedSquare, verbose: true }).map((move) => move.to)
-    : [];
+  const legalMoves = selectedSquare ? chess.moves({ square: selectedSquare, verbose: true }) : [];
+  const legalTargets = legalMoves.map((move) => move.to);
+  const captureTargets = legalMoves
+    .filter((move) => Boolean(move.captured))
+    .map((move) => move.to);
 
   const squares = [];
   const labels = [];
@@ -170,6 +200,8 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
             event.stopPropagation();
             handleSquarePress(square, row, col);
           }}
+          onPointerEnter={() => setHoveredSquare(square)}
+          onPointerLeave={() => setHoveredSquare((current) => (current === square ? null : current))}
         >
           <boxGeometry args={[0.98, 0.12, 0.98]} />
           <meshStandardMaterial
@@ -194,7 +226,17 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
             previousPosition={
               movingPiece?.to === square ? movingPiece.fromPosition : undefined
             }
+            motionKind={movingPiece?.to === square ? movingPiece.motionKind : "move"}
             onPress={() => handleSquarePress(square, row, col)}
+            onHoverChange={(isHovered) =>
+              setHoveredSquare((current) => {
+                if (isHovered) {
+                  return square;
+                }
+
+                return current === square ? null : current;
+              })
+            }
           />
         );
       }
@@ -279,6 +321,16 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
           />
         </>
       )}
+      {captureTargets.map((target) => (
+        <SquareAura
+          key={`capture-${target}`}
+          color={hoveredSquare === target ? "#ff4b1f" : "#ff9f1c"}
+          intensity={hoveredSquare === target ? 0.82 : 0.48}
+          position={squareToPosition(target)}
+          size={hoveredSquare === target ? 1.02 : 0.88}
+          urgent={hoveredSquare === target}
+        />
+      ))}
       {checkedKingSquare && (
         <SquareAura
           color="#ff244f"
@@ -306,6 +358,7 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
       {captureAnimations.map((animation) => (
         <CaptureEffect
           key={animation.id}
+          intensity={animation.intensity}
           kind={animation.kind}
           position={animation.position}
           onDone={() =>
@@ -342,6 +395,10 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
     }
 
     if (legalTargets.includes(square)) {
+      if (captureTargets.includes(square)) {
+        return hoveredSquare === square ? "#ff7043" : "#c76a32";
+      }
+
       return "#77cfa2";
     }
 
@@ -389,7 +446,7 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
   function isPromotionMove(from: Square, to: Square) {
     return chess
       .moves({ square: from, verbose: true })
-      .some((move) => move.to === to && "promotion" in move);
+      .some((move) => move.to === to && Boolean(move.promotion));
   }
 
   function commitMove(
@@ -415,6 +472,7 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
     const isCheckmate = chess.isCheckmate();
     const isDraw = chess.isDraw();
     const isCheck = chess.isCheck();
+    const captureSignificance = getCaptureSignificance(capturedPiece, row, col);
     const effectKind: AttackEffectKind = isCheckmate
       ? "royal"
       : capturedPiece
@@ -438,6 +496,7 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
         ...current,
         {
           id: Date.now() + 1,
+          intensity: isCheckmate ? 1 : captureSignificance,
           kind: trailKind,
           position: targetPosition,
         },
@@ -447,11 +506,13 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
     setMovingPiece({
       to,
       fromPosition: squareToPosition(from),
+      motionKind: capturedPiece || isCheckmate ? "attack" : "move",
     });
     setLastMove({ from, to });
     setPosition(chess.fen());
     setSelectedSquare(null);
     setPendingPromotion(null);
+    setHoveredSquare(null);
     onMove({
       notation: move.san,
       effectKind,
@@ -462,6 +523,8 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
             color: move.color === "w" ? "b" : "w",
           }
         : undefined,
+      capturedSquare: capturedPiece ? to : undefined,
+      captureSignificance: capturedPiece ? captureSignificance : undefined,
     });
     onStatusChange(getStatus(chess));
   }

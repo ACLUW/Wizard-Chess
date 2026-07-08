@@ -17,6 +17,42 @@ const pieceSymbols: Record<CapturedPiece["type"], string> = {
   k: "\u265A",
 };
 
+const pieceNames: Record<CapturedPiece["type"], string> = {
+  p: "Pawn",
+  r: "Rook",
+  n: "Knight",
+  b: "Bishop",
+  q: "Queen",
+  k: "King",
+};
+
+const captureTaunts: Record<CapturedPiece["type"], string[]> = {
+  p: [
+    "Tiny soldier down. The road just got cleaner.",
+    "One pawn less, one plan ruined.",
+  ],
+  r: [
+    "Hahaha, now I have got my edges covered. What else can you do?",
+    "Your fortress lost a tower. The walls are listening to me now.",
+  ],
+  n: [
+    "That horse stopped jumping. Try a straight answer next time.",
+    "No more sneaky L-shapes. I saw that circus trick coming.",
+  ],
+  b: [
+    "Your diagonal prophet just ran out of sermons.",
+    "That bishop blessed the wrong square.",
+  ],
+  q: [
+    "The crown jewel is gone. Your kingdom just got very quiet.",
+    "Queen captured. I hope your backup plan has teeth.",
+  ],
+  k: [
+    "The throne is empty. Bow to the blast radius.",
+    "King down. The arena accepts your resignation.",
+  ],
+};
+
 const effectLabels: Record<GameMove["effectKind"], string> = {
   move: "Move",
   sparks: "Spark hit",
@@ -46,6 +82,13 @@ type CinematicBannerState = {
   tone: "check" | "checkmate" | "draw" | "capture";
   title: string;
   detail: string;
+};
+
+type TauntPopupState = {
+  id: number;
+  pieceType: CapturedPiece["type"];
+  title: string;
+  quote: string;
 };
 
 function ResponsiveCamera() {
@@ -117,12 +160,14 @@ function App() {
   const [captures, setCaptures] = useState<CapturedPiece[]>([]);
   const [resetSignal, setResetSignal] = useState(0);
   const [stageLighting, setStageLighting] = useState(1);
+  const [isTutorialOpen, setIsTutorialOpen] = useState(false);
   const [cameraImpact, setCameraImpact] = useState<CameraImpact>({
     id: 0,
     duration: 0,
     strength: 0,
   });
   const [cinematicBanner, setCinematicBanner] = useState<CinematicBannerState | null>(null);
+  const [tauntPopup, setTauntPopup] = useState<TauntPopupState | null>(null);
 
   useEffect(() => {
     if (!cinematicBanner) {
@@ -137,12 +182,47 @@ function App() {
     return () => window.clearTimeout(timeoutId);
   }, [cinematicBanner]);
 
+  useEffect(() => {
+    if (!tauntPopup) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(
+      () => setTauntPopup((current) => (current?.id === tauntPopup.id ? null : current)),
+      3600,
+    );
+
+    return () => window.clearTimeout(timeoutId);
+  }, [tauntPopup]);
+
+  function getCaptureTaunt(move: GameMove) {
+    if (!move.captured || move.captured.type === "p") {
+      return null;
+    }
+
+    const taunts = captureTaunts[move.captured.type];
+    const tauntIndex = (move.notation.length + (move.capturedSquare?.charCodeAt(0) ?? 0)) % taunts.length;
+
+    return {
+      id: Date.now() + 11,
+      pieceType: move.captured.type,
+      title: `${pieceNames[move.captured.type]} captured${move.capturedSquare ? ` on ${move.capturedSquare}` : ""}`,
+      quote: taunts[tauntIndex],
+    };
+  }
+
   function handleMove(move: GameMove) {
     playAttackSound(move.effectKind);
     setMoves((currentMoves) => [...currentMoves, move]);
 
     if (move.captured) {
       setCaptures((currentCaptures) => [...currentCaptures, move.captured!]);
+
+      const taunt = getCaptureTaunt(move);
+
+      if (taunt) {
+        setTauntPopup(taunt);
+      }
     }
 
     const outcomeImpact = move.outcome === "checkmate" ? 0.16 : move.outcome === "check" ? 0.06 : 0;
@@ -192,6 +272,7 @@ function App() {
     setMoves([]);
     setCaptures([]);
     setCinematicBanner(null);
+    setTauntPopup(null);
     setCameraImpact({ id: Date.now(), duration: 0, strength: 0 });
     setResetSignal((signal) => signal + 1);
   }
@@ -235,6 +316,15 @@ function App() {
           <div className={`cinematic-banner cinematic-${cinematicBanner.tone}`}>
             <strong>{cinematicBanner.title}</strong>
             <span>{cinematicBanner.detail}</span>
+          </div>
+        )}
+        {tauntPopup && (
+          <div className={`taunt-popup taunt-${tauntPopup.pieceType}`}>
+            <span className="taunt-piece">{pieceSymbols[tauntPopup.pieceType]}</span>
+            <div>
+              <strong>{tauntPopup.title}</strong>
+              <p>{tauntPopup.quote}</p>
+            </div>
           </div>
         )}
         <Canvas
@@ -321,10 +411,120 @@ function App() {
         </article>
 
         <article className="dashboard-card control-hint">
-          Tap/click a piece, then choose a highlighted square. Drag to orbit the
-          board; pinch or scroll to zoom.
+          <h2>Need Help?</h2>
+          <p>New to chess or the arena effects?</p>
+          <button className="hint-button" type="button" onClick={() => setIsTutorialOpen(true)}>
+            Open Beginner Guide
+          </button>
         </article>
       </section>
+
+      {isTutorialOpen && (
+        <section
+          aria-labelledby="tutorial-title"
+          aria-modal="true"
+          className="tutorial-backdrop"
+          role="dialog"
+        >
+          <div className="tutorial-panel">
+            <button
+              aria-label="Close tutorial"
+              className="tutorial-close"
+              type="button"
+              onClick={() => setIsTutorialOpen(false)}
+            >
+              ×
+            </button>
+
+            <p className="eyebrow">Beginner Guide</p>
+            <h2 id="tutorial-title">Welcome to Wizard Chess</h2>
+            <p className="tutorial-intro">
+              Play normal chess rules on a dramatic 3D arena. Select a piece,
+              follow the highlighted legal moves, and use captures to trigger
+              sparks, blasts, and magical attack trails.
+            </p>
+
+            <div className="tutorial-grid">
+              <article>
+                <strong>1. Select</strong>
+                <p>Tap or click one of your pieces. Gold means selected.</p>
+              </article>
+              <article>
+                <strong>2. Move</strong>
+                <p>Green squares are legal moves. Orange squares are captures.</p>
+              </article>
+              <article>
+                <strong>3. Capture</strong>
+                <p>Capture higher-value pieces for stronger effects and camera impact.</p>
+              </article>
+              <article>
+                <strong>4. Check</strong>
+                <p>A red aura warns when a king is under attack.</p>
+              </article>
+              <article>
+                <strong>5. Promote</strong>
+                <p>When a pawn reaches the far side, choose Queen, Rook, Bishop, or Knight.</p>
+              </article>
+              <article>
+                <strong>6. Win</strong>
+                <p>Checkmate the enemy king to end the battle.</p>
+              </article>
+            </div>
+
+            <h3 className="tutorial-subtitle">How the pieces move</h3>
+            <div className="piece-guide-grid">
+              <article>
+                <span>♙ Pawn</span>
+                <p>
+                  Moves forward one square, or two from its starting rank. It captures one
+                  square diagonally forward and promotes when it reaches the far side.
+                </p>
+              </article>
+              <article>
+                <span>♖ Rook</span>
+                <p>
+                  Moves any number of squares in straight lines: forward, backward, left,
+                  or right. Great for open files and castling protection.
+                </p>
+              </article>
+              <article>
+                <span>♘ Knight</span>
+                <p>
+                  Moves in an L-shape: two squares in one direction, then one sideways.
+                  It is the only piece that can jump over other pieces.
+                </p>
+              </article>
+              <article>
+                <span>♗ Bishop</span>
+                <p>
+                  Moves any number of squares diagonally. Each bishop stays forever on
+                  the same color square it started on.
+                </p>
+              </article>
+              <article>
+                <span>♕ Queen</span>
+                <p>
+                  Moves any number of squares in any straight or diagonal direction. She
+                  is your strongest attacker and defender.
+                </p>
+              </article>
+              <article>
+                <span>♔ King</span>
+                <p>
+                  Moves one square in any direction. Protect him at all costs: if he is
+                  trapped in check, the game is checkmate.
+                </p>
+              </article>
+            </div>
+
+            <div className="tutorial-tips">
+              <span>Drag to orbit</span>
+              <span>Scroll or pinch to zoom</span>
+              <span>Use New Game to reset</span>
+            </div>
+          </div>
+        </section>
+      )}
     </main>
   );
 }

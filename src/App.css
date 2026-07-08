@@ -97,6 +97,35 @@ body {
   line-height: 1.45;
 }
 
+.control-hint p {
+  margin: 0 0 10px;
+  color: #f1d6bd;
+}
+
+.hint-button {
+  cursor: pointer;
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 14px;
+  color: #160703;
+  background: linear-gradient(135deg, #57f7ff, #ffd166);
+  box-shadow: 0 0 24px rgba(87, 247, 255, 0.22);
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.hint-button:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 0 24px rgba(87, 247, 255, 0.32),
+    0 10px 28px rgba(255, 209, 102, 0.18);
+}
+
+.hint-button:active {
+  transform: translateY(1px);
+}
+
 .game-dashboard {
   display: grid;
   grid-template-columns: minmax(140px, 1fr) minmax(160px, 1.2fr) minmax(220px, 1.8fr);
@@ -294,6 +323,99 @@ body {
 .cinematic-capture strong {
   color: #ffd166;
   text-shadow: 0 0 20px rgba(255, 122, 31, 0.62);
+}
+
+.taunt-popup {
+  position: absolute;
+  z-index: 6;
+  right: clamp(12px, 3vw, 28px);
+  bottom: clamp(14px, 4vw, 34px);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  width: min(430px, calc(100% - 28px));
+  padding: 14px 16px;
+  color: #fff0d7;
+  border: 1px solid rgba(255, 209, 102, 0.42);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at top left, rgba(255, 209, 102, 0.22), transparent 38%),
+    linear-gradient(135deg, rgba(45, 11, 4, 0.92), rgba(8, 2, 1, 0.86));
+  box-shadow:
+    0 0 0 1px rgba(255, 91, 31, 0.18),
+    0 20px 70px rgba(0, 0, 0, 0.58),
+    0 0 54px rgba(255, 81, 31, 0.24);
+  pointer-events: none;
+  animation: taunt-slam 3.6s cubic-bezier(0.18, 0.92, 0.26, 1) both;
+}
+
+.taunt-piece {
+  display: grid;
+  place-items: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 16px;
+  color: #1b0702;
+  background: linear-gradient(135deg, #ffd166, #ff7a1f);
+  box-shadow: 0 0 28px rgba(255, 122, 31, 0.45);
+  font-size: 32px;
+}
+
+.taunt-popup strong {
+  display: block;
+  color: #ffd166;
+  font-size: clamp(15px, 2vw, 20px);
+  font-weight: 950;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.taunt-popup p {
+  margin: 5px 0 0;
+  color: #ffe7c7;
+  font-size: clamp(13px, 1.6vw, 16px);
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.taunt-q {
+  border-color: rgba(255, 36, 79, 0.58);
+  box-shadow:
+    0 0 0 1px rgba(255, 36, 79, 0.18),
+    0 20px 70px rgba(0, 0, 0, 0.6),
+    0 0 64px rgba(255, 36, 79, 0.34);
+}
+
+.taunt-r {
+  border-color: rgba(255, 184, 90, 0.58);
+}
+
+.taunt-n,
+.taunt-b {
+  border-color: rgba(87, 247, 255, 0.42);
+}
+
+@keyframes taunt-slam {
+  0% {
+    opacity: 0;
+    transform: translate(34px, 22px) rotate(2deg) scale(0.78);
+  }
+
+  10% {
+    opacity: 1;
+    transform: translate(-8px, -8px) rotate(-1deg) scale(1.06);
+  }
+
+  18%,
+  78% {
+    opacity: 1;
+    transform: translate(0, 0) rotate(0) scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(28px, 12px) rotate(-1deg) scale(0.92);
+  }
 }
 
 @keyframes cinematic-pop {
@@ -519,6 +641,154 @@ body {
   height: 8px;
 }
 
+.tutorial-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background:
+    radial-gradient(circle at center, rgba(255, 122, 31, 0.18), transparent 42%),
+    rgba(5, 1, 0, 0.72);
+  backdrop-filter: blur(10px);
+}
+
+.tutorial-panel {
+  position: relative;
+  max-width: min(840px, calc(100vw - 2rem));
+  max-height: min(88vh, 760px);
+  overflow: auto;
+  padding: clamp(18px, 3vw, 30px);
+  border: 1px solid rgba(255, 209, 102, 0.42);
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at top, rgba(255, 122, 31, 0.2), transparent 38%),
+    linear-gradient(135deg, rgba(34, 10, 5, 0.96), rgba(9, 2, 1, 0.96));
+  box-shadow:
+    0 30px 90px rgba(0, 0, 0, 0.62),
+    inset 0 0 42px rgba(255, 101, 20, 0.12);
+}
+
+.tutorial-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  cursor: pointer;
+  width: 38px;
+  height: 38px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 50%;
+  color: #ffe7c7;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 26px;
+  line-height: 1;
+}
+
+.tutorial-close:hover {
+  border-color: rgba(255, 209, 102, 0.55);
+  background: rgba(255, 209, 102, 0.14);
+}
+
+.tutorial-panel h2 {
+  margin: 0;
+  color: #ffe7c7;
+  font-size: clamp(26px, 4vw, 48px);
+  line-height: 1;
+}
+
+.tutorial-intro {
+  max-width: 68ch;
+  color: #f1d6bd;
+  line-height: 1.55;
+}
+
+.tutorial-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.tutorial-grid article {
+  padding: 14px;
+  border: 1px solid rgba(255, 122, 31, 0.24);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.tutorial-grid strong {
+  display: block;
+  margin-bottom: 6px;
+  color: #ffbd70;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.tutorial-grid p {
+  margin: 0;
+  color: #f1d6bd;
+  line-height: 1.4;
+}
+
+.tutorial-subtitle {
+  margin: 24px 0 12px;
+  color: #9ffbff;
+  font-size: clamp(18px, 2.4vw, 26px);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-shadow: 0 0 18px rgba(87, 247, 255, 0.28);
+}
+
+.piece-guide-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.piece-guide-grid article {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid rgba(87, 247, 255, 0.18);
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(87, 247, 255, 0.08), transparent),
+    rgba(255, 255, 255, 0.05);
+}
+
+.piece-guide-grid span {
+  color: #ffe7c7;
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+
+.piece-guide-grid p {
+  margin: 0;
+  color: #f1d6bd;
+  line-height: 1.45;
+}
+
+.tutorial-tips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.tutorial-tips span {
+  border: 1px solid rgba(87, 247, 255, 0.24);
+  border-radius: 999px;
+  padding: 7px 10px;
+  color: #9ffbff;
+  background: rgba(87, 247, 255, 0.08);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
 @media (max-width: 700px) {
   .hero-controls {
     width: 100%;
@@ -527,5 +797,17 @@ body {
   .hero-panel .lighting-panel {
     min-width: 0;
     width: 100%;
+  }
+
+  .tutorial-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .piece-guide-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tutorial-panel {
+    max-height: 86vh;
   }
 }
