@@ -192,6 +192,85 @@ body {
   box-shadow: 0 0 22px rgba(255, 54, 112, 0.62);
 }
 
+.promotion-panel {
+  min-width: min(420px, calc(100vw - 2rem));
+  padding: 18px;
+  color: #ffe7c7;
+  text-align: center;
+  border: 1px solid rgba(255, 209, 102, 0.44);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at top, rgba(255, 209, 102, 0.22), transparent 42%),
+    linear-gradient(135deg, rgba(34, 10, 5, 0.94), rgba(9, 2, 1, 0.94));
+  box-shadow:
+    0 0 0 1px rgba(255, 94, 31, 0.16),
+    0 24px 70px rgba(0, 0, 0, 0.58),
+    inset 0 0 36px rgba(255, 101, 20, 0.16);
+  backdrop-filter: blur(14px);
+  pointer-events: auto;
+  user-select: none;
+}
+
+.promotion-panel p {
+  margin: 0 0 14px;
+  color: #ffbd70;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.promotion-options {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.promotion-options button,
+.promotion-cancel {
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 16px;
+  color: #ffe9ce;
+  background: rgba(255, 255, 255, 0.08);
+  font-weight: 900;
+}
+
+.promotion-options button {
+  display: grid;
+  gap: 6px;
+  padding: 12px 8px;
+}
+
+.promotion-options button:hover,
+.promotion-cancel:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 209, 102, 0.55);
+  box-shadow: 0 0 24px rgba(255, 128, 48, 0.24);
+}
+
+.promotion-options span {
+  font-size: 34px;
+  line-height: 1;
+}
+
+.promotion-white span {
+  color: #ffffff;
+  text-shadow: 0 0 14px rgba(255, 255, 255, 0.78);
+}
+
+.promotion-black span {
+  color: #15111d;
+  text-shadow:
+    0 0 8px rgba(87, 247, 255, 0.7),
+    0 0 16px rgba(255, 122, 31, 0.42);
+}
+
+.promotion-cancel {
+  margin-top: 12px;
+  padding: 9px 16px;
+}
+
 @media (max-width: 700px) {
   body {
     overflow: hidden;
