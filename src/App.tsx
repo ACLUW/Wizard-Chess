@@ -16,6 +16,15 @@ const pieceSymbols: Record<CapturedPiece["type"], string> = {
   k: "\u265A",
 };
 
+const effectLabels: Record<GameMove["effectKind"], string> = {
+  move: "Move",
+  sparks: "Spark hit",
+  arcane: "Arcane strike",
+  shockwave: "Shockwave",
+  inferno: "Inferno",
+  royal: "Royal blast",
+};
+
 function ResponsiveCamera() {
   const { camera, size } = useThree();
 
@@ -164,7 +173,14 @@ function App() {
               <li>Tap a piece to begin</li>
             ) : (
               moves.slice(-8).map((move, index) => (
-                <li key={`${move.notation}-${index}`}>{move.notation}</li>
+                <li key={`${move.notation}-${index}`}>
+                  <span>{move.notation}</span>
+                  {move.effectKind !== "move" && (
+                    <em className={`effect-badge effect-${move.effectKind}`}>
+                      {effectLabels[move.effectKind]}
+                    </em>
+                  )}
+                </li>
               ))
             )}
           </ol>

@@ -11,9 +11,11 @@ export type CapturedPiece = {
   color: "w" | "b";
 };
 
+export type AttackEffectKind = "move" | "sparks" | "arcane" | "shockwave" | "inferno" | "royal";
+
 export type GameMove = {
   notation: string;
-  effectKind: "move" | "sparks" | "fire";
+  effectKind: AttackEffectKind;
   captured?: CapturedPiece;
 };
 
@@ -25,7 +27,7 @@ type BoardProps = {
 
 type CaptureAnimation = {
   id: number;
-  kind: "sparks" | "fire";
+  kind: Exclude<AttackEffectKind, "move">;
   position: [number, number, number];
 };
 
@@ -35,7 +37,14 @@ type MovingPiece = {
 };
 
 const files = ["a", "b", "c", "d", "e", "f", "g", "h"];
-const royalPieces: PieceSymbol[] = ["r", "n", "b", "q", "k"];
+const pieceCaptureEffects: Record<PieceSymbol, Exclude<AttackEffectKind, "move">> = {
+  p: "sparks",
+  n: "arcane",
+  b: "arcane",
+  r: "shockwave",
+  q: "inferno",
+  k: "royal",
+};
 
 function toSquare(row: number, col: number) {
   return `${files[col]}${8 - row}` as Square;
@@ -278,20 +287,19 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
     }
 
     const capturedPiece = move.captured;
-    const effectKind = capturedPiece
-      ? royalPieces.includes(capturedPiece)
-        ? "fire"
-        : "sparks"
-      : "move";
+    const isCheckmate = chess.isCheckmate();
+    const effectKind: AttackEffectKind = isCheckmate
+      ? "royal"
+      : capturedPiece
+        ? pieceCaptureEffects[capturedPiece]
+        : "move";
 
-    if (capturedPiece) {
-      const captureKind = royalPieces.includes(capturedPiece) ? "fire" : "sparks";
-
+    if (capturedPiece || isCheckmate) {
       setCaptureAnimations((current) => [
         ...current,
         {
           id: Date.now(),
-          kind: captureKind,
+          kind: effectKind === "move" ? "sparks" : effectKind,
           position: toPosition(row, col),
         },
       ]);
