@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { Html, Text } from "@react-three/drei";
+import { useFrame } from "@react-three/fiber";
 import { Chess } from "chess.js";
 import type { PieceSymbol, Square } from "chess.js";
+import AttackTrail from "./AttackTrail";
 import CaptureEffect from "./CaptureEffect";
 import Piece from "./Piece";
 import { createStoneTexture, stoneTexturePresets } from "../materials/stoneTextures";
@@ -32,6 +34,13 @@ type CaptureAnimation = {
   position: [number, number, number];
 };
 
+type AttackTrailAnimation = {
+  id: number;
+  from: [number, number, number];
+  to: [number, number, number];
+  kind: Exclude<AttackEffectKind, "move">;
+};
+
 type PromotionPiece = "q" | "r" | "b" | "n";
 
 type PendingPromotion = {
@@ -44,6 +53,11 @@ type PendingPromotion = {
 type MovingPiece = {
   to: Square;
   fromPosition: [number, number, number];
+};
+
+type LastMove = {
+  from: Square;
+  to: Square;
 };
 
 const files = ["a", "b", "c", "d", "e", "f", "g", "h"];
@@ -97,8 +111,10 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
   const [selectedSquare, setSelectedSquare] = useState<Square | null>(null);
   const [, setPosition] = useState(chess.fen());
   const [captureAnimations, setCaptureAnimations] = useState<CaptureAnimation[]>([]);
+  const [attackTrails, setAttackTrails] = useState<AttackTrailAnimation[]>([]);
   const [movingPiece, setMovingPiece] = useState<MovingPiece | null>(null);
   const [pendingPromotion, setPendingPromotion] = useState<PendingPromotion | null>(null);
+  const [lastMove, setLastMove] = useState<LastMove | null>(null);
   const ivoryTileTexture = useMemo(
     () => createStoneTexture("ivoryTile", stoneTexturePresets.ivoryTile),
     [],
@@ -112,8 +128,10 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
     chess.reset();
     setSelectedSquare(null);
     setCaptureAnimations([]);
+    setAttackTrails([]);
     setMovingPiece(null);
     setPendingPromotion(null);
+    setLastMove(null);
     setPosition(chess.fen());
     onStatusChange(getStatus(chess));
   }, [chess, onStatusChange, resetSignal]);
@@ -137,6 +155,7 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
   const pieces = [];
 
   const board = chess.board();
+  const checkedKingSquare = chess.isCheck() ? findKingSquare(chess.turn()) : null;
 
   for (let row = 0; row < 8; row++) {
     for (let col = 0; col < 8; col++) {
@@ -244,8 +263,46 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
         <meshStandardMaterial color="#111111" map={blackTileTexture} metalness={0.01} roughness={0.55} />
       </mesh>
       {squares}
+      {lastMove && (
+        <>
+          <SquareAura
+            color="#ffd166"
+            intensity={0.42}
+            position={squareToPosition(lastMove.from)}
+            size={0.88}
+          />
+          <SquareAura
+            color="#ff9f1c"
+            intensity={0.55}
+            position={squareToPosition(lastMove.to)}
+            size={0.94}
+          />
+        </>
+      )}
+      {checkedKingSquare && (
+        <SquareAura
+          color="#ff244f"
+          intensity={0.92}
+          position={squareToPosition(checkedKingSquare)}
+          size={1.06}
+          urgent
+        />
+      )}
       {labels}
       {pieces}
+      {attackTrails.map((trail) => (
+        <AttackTrail
+          key={trail.id}
+          from={trail.from}
+          kind={trail.kind}
+          to={trail.to}
+          onDone={() =>
+            setAttackTrails((current) =>
+              current.filter((item) => item.id !== trail.id),
+            )
+          }
+        />
+      ))}
       {captureAnimations.map((animation) => (
         <CaptureEffect
           key={animation.id}
@@ -365,12 +422,24 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
         : "move";
 
     if (capturedPiece || isCheckmate) {
-      setCaptureAnimations((current) => [
+      const trailKind = effectKind === "move" ? "sparks" : effectKind;
+      const targetPosition = toPosition(row, col);
+
+      setAttackTrails((current) => [
         ...current,
         {
           id: Date.now(),
-          kind: effectKind === "move" ? "sparks" : effectKind,
-          position: toPosition(row, col),
+          from: squareToPosition(from),
+          kind: trailKind,
+          to: targetPosition,
+        },
+      ]);
+      setCaptureAnimations((current) => [
+        ...current,
+        {
+          id: Date.now() + 1,
+          kind: trailKind,
+          position: targetPosition,
         },
       ]);
     }
@@ -379,6 +448,7 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
       to,
       fromPosition: squareToPosition(from),
     });
+    setLastMove({ from, to });
     setPosition(chess.fen());
     setSelectedSquare(null);
     setPendingPromotion(null);
@@ -395,6 +465,60 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
     });
     onStatusChange(getStatus(chess));
   }
+
+  function findKingSquare(color: "w" | "b") {
+    const currentBoard = chess.board();
+
+    for (let rowIndex = 0; rowIndex < 8; rowIndex++) {
+      for (let colIndex = 0; colIndex < 8; colIndex++) {
+        const piece = currentBoard[rowIndex][colIndex];
+
+        if (piece?.type === "k" && piece.color === color) {
+          return toSquare(rowIndex, colIndex);
+        }
+      }
+    }
+
+    return null;
+  }
+}
+
+function SquareAura({
+  color,
+  intensity,
+  position,
+  size,
+  urgent = false,
+}: {
+  color: string;
+  intensity: number;
+  position: [number, number, number];
+  size: number;
+  urgent?: boolean;
+}) {
+  const [age, setAge] = useState(0);
+
+  useFrame((_, delta) => {
+    setAge((currentAge) => currentAge + delta);
+  });
+
+  const pulse = urgent ? 0.5 + Math.sin(age * 8) * 0.22 : 0.36 + Math.sin(age * 3.2) * 0.1;
+  const opacity = Math.max(0.12, pulse * intensity);
+  const ringScale = size + (urgent ? Math.sin(age * 8) * 0.04 : Math.sin(age * 3.2) * 0.025);
+
+  return (
+    <group position={[position[0], 0.135, position[2]]}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[ringScale * 0.42, ringScale * 0.53, urgent ? 48 : 36]} />
+        <meshBasicMaterial color={color} transparent opacity={opacity} />
+      </mesh>
+      <mesh rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[size, size]} />
+        <meshBasicMaterial color={color} transparent opacity={opacity * 0.16} />
+      </mesh>
+      {urgent && <pointLight color={color} distance={2.4} intensity={2.2 + Math.sin(age * 8) * 0.85} />}
+    </group>
+  );
 }
 
 function PromotionPicker({

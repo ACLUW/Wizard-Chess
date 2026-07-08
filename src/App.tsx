@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { playAttackSound } from "./audio";
 import "./App.css";
 import Board from "./components/Board";
+import CapturedGraveyard from "./components/CapturedGraveyard";
 import FireArena from "./components/FireArena";
 import type { CapturedPiece, GameMove } from "./components/Board";
 
@@ -259,6 +260,7 @@ function App() {
           <pointLight position={[0, 3.8, 0]} intensity={2.1 * stageLighting} color="#ffc06d" distance={9.5} />
           <pointLight position={[-4, 2.2, -4]} intensity={0.95 * stageLighting} color="#d94a18" />
           <FireArena lighting={stageLighting} />
+          <CapturedGraveyard captures={captures} />
           <Board
             onStatusChange={setGameStatus}
             onMove={handleMove}
