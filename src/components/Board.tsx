@@ -53,6 +53,7 @@ type PendingPromotion = {
 type MovingPiece = {
   to: Square;
   fromPosition: [number, number, number];
+  motionKind: "move" | "attack";
 };
 
 type LastMove = {
@@ -194,6 +195,7 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
             previousPosition={
               movingPiece?.to === square ? movingPiece.fromPosition : undefined
             }
+            motionKind={movingPiece?.to === square ? movingPiece.motionKind : "move"}
             onPress={() => handleSquarePress(square, row, col)}
           />
         );
@@ -447,6 +449,7 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
     setMovingPiece({
       to,
       fromPosition: squareToPosition(from),
+      motionKind: capturedPiece || isCheckmate ? "attack" : "move",
     });
     setLastMove({ from, to });
     setPosition(chess.fen());

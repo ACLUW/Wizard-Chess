@@ -12,6 +12,7 @@ type PieceProps = {
   color: PieceColor;
   position: [number, number, number];
   previousPosition?: [number, number, number];
+  motionKind?: "move" | "attack";
   onPress?: () => void;
 };
 
@@ -31,9 +32,11 @@ type StoneMaterialProps = {
 
 const pieceScale = 0.78;
 
-function Piece({ type, color, position, previousPosition, onPress }: PieceProps) {
+function Piece({ type, color, position, previousPosition, motionKind = "move", onPress }: PieceProps) {
   const groupRef = useRef<Group>(null);
+  const visualRef = useRef<Group>(null);
   const targetRef = useRef(new Vector3(...position));
+  const motionAgeRef = useRef(1);
   const palette = getPalette(color);
   const modelConfig = getPieceModelConfig(type, color);
 
@@ -43,7 +46,8 @@ function Piece({ type, color, position, previousPosition, onPress }: PieceProps)
     }
 
     groupRef.current.position.set(...previousPosition);
-  }, [previousPosition]);
+    motionAgeRef.current = 0;
+  }, [motionKind, previousPosition]);
 
   useEffect(() => {
     targetRef.current.set(...position);
@@ -55,6 +59,28 @@ function Piece({ type, color, position, previousPosition, onPress }: PieceProps)
     }
 
     groupRef.current.position.lerp(targetRef.current, Math.min(1, delta * 9));
+
+    if (!visualRef.current) {
+      return;
+    }
+
+    motionAgeRef.current += delta;
+
+    if (motionKind === "attack" && motionAgeRef.current < 0.58) {
+      const progress = motionAgeRef.current / 0.58;
+      const strike = Math.sin(progress * Math.PI);
+      const recoil = Math.sin(progress * Math.PI * 2);
+
+      visualRef.current.position.y = strike * 0.22;
+      visualRef.current.rotation.x = -strike * 0.1;
+      visualRef.current.rotation.z = recoil * 0.11;
+      visualRef.current.scale.setScalar(1 + strike * 0.08);
+      return;
+    }
+
+    visualRef.current.position.y = 0;
+    visualRef.current.rotation.set(0, 0, 0);
+    visualRef.current.scale.setScalar(1);
   });
 
   return (
@@ -67,18 +93,28 @@ function Piece({ type, color, position, previousPosition, onPress }: PieceProps)
         onPress?.();
       }}
     >
-      {modelConfig ? (
-        <Suspense fallback={<ProceduralMarblePiece type={type} palette={palette} />}>
-          <LoadedModelPiece
-            modelPath={modelConfig.path}
-            offset={modelConfig.offset}
-            rotation={modelConfig.rotation}
-            scale={modelConfig.scale}
+      <group ref={visualRef}>
+        {motionKind === "attack" && previousPosition && (
+          <pointLight
+            color={palette.accent}
+            distance={1.7}
+            intensity={1.4}
+            position={[0, 1.1, 0]}
           />
-        </Suspense>
-      ) : (
-        <ProceduralMarblePiece type={type} palette={palette} />
-      )}
+        )}
+        {modelConfig ? (
+          <Suspense fallback={<ProceduralMarblePiece type={type} palette={palette} />}>
+            <LoadedModelPiece
+              modelPath={modelConfig.path}
+              offset={modelConfig.offset}
+              rotation={modelConfig.rotation}
+              scale={modelConfig.scale}
+            />
+          </Suspense>
+        ) : (
+          <ProceduralMarblePiece type={type} palette={palette} />
+        )}
+      </group>
     </group>
   );
 }
