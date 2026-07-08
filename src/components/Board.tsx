@@ -16,6 +16,7 @@ export type AttackEffectKind = "move" | "sparks" | "arcane" | "shockwave" | "inf
 export type GameMove = {
   notation: string;
   effectKind: AttackEffectKind;
+  outcome?: "check" | "checkmate" | "draw";
   captured?: CapturedPiece;
 };
 
@@ -355,6 +356,8 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
 
     const capturedPiece = move.captured;
     const isCheckmate = chess.isCheckmate();
+    const isDraw = chess.isDraw();
+    const isCheck = chess.isCheck();
     const effectKind: AttackEffectKind = isCheckmate
       ? "royal"
       : capturedPiece
@@ -382,6 +385,7 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
     onMove({
       notation: move.san,
       effectKind,
+      outcome: isCheckmate ? "checkmate" : isDraw ? "draw" : isCheck ? "check" : undefined,
       captured: capturedPiece
         ? {
             type: capturedPiece,
