@@ -13,6 +13,7 @@ type PieceProps = {
   position: [number, number, number];
   previousPosition?: [number, number, number];
   motionKind?: "move" | "attack";
+  onHoverChange?: (isHovered: boolean) => void;
   onPress?: () => void;
 };
 
@@ -32,7 +33,15 @@ type StoneMaterialProps = {
 
 const pieceScale = 0.78;
 
-function Piece({ type, color, position, previousPosition, motionKind = "move", onPress }: PieceProps) {
+function Piece({
+  type,
+  color,
+  position,
+  previousPosition,
+  motionKind = "move",
+  onHoverChange,
+  onPress,
+}: PieceProps) {
   const groupRef = useRef<Group>(null);
   const visualRef = useRef<Group>(null);
   const targetRef = useRef(new Vector3(...position));
@@ -91,6 +100,14 @@ function Piece({ type, color, position, previousPosition, motionKind = "move", o
       onClick={(event) => {
         event.stopPropagation();
         onPress?.();
+      }}
+      onPointerEnter={(event) => {
+        event.stopPropagation();
+        onHoverChange?.(true);
+      }}
+      onPointerLeave={(event) => {
+        event.stopPropagation();
+        onHoverChange?.(false);
       }}
     >
       <group ref={visualRef}>
