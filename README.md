@@ -23,6 +23,13 @@ If a model path is not configured, the app renders the built-in procedural marbl
 
 Procedural marble/onyx textures are generated in `src/materials/stoneTextures.ts` and are applied to the fallback pieces and board.
 
+## Arena Features
+
+- Full legal chess movement powered by `chess.js`, including castling, en passant, promotion, check, checkmate, and draws.
+- Animated 3D pieces, legal-move highlighting, capture trails, tiered fireball effects, camera impact, and role-specific taunts.
+- Beginner guide covering controls and every piece's movement style.
+- Synchronized Undo Move and New Game controls that rewind the board, move log, captures, and arena overlays.
+
 This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
 
 Currently, two official plugins are available:

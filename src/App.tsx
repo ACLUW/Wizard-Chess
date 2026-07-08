@@ -159,6 +159,7 @@ function App() {
   const [moves, setMoves] = useState<GameMove[]>([]);
   const [captures, setCaptures] = useState<CapturedPiece[]>([]);
   const [resetSignal, setResetSignal] = useState(0);
+  const [undoSignal, setUndoSignal] = useState(0);
   const [stageLighting, setStageLighting] = useState(1);
   const [isTutorialOpen, setIsTutorialOpen] = useState(false);
   const [cameraImpact, setCameraImpact] = useState<CameraImpact>({
@@ -277,6 +278,25 @@ function App() {
     setResetSignal((signal) => signal + 1);
   }
 
+  function undoMove() {
+    const lastMove = moves.at(-1);
+
+    if (!lastMove) {
+      return;
+    }
+
+    setMoves((currentMoves) => currentMoves.slice(0, -1));
+
+    if (lastMove.captured) {
+      setCaptures((currentCaptures) => currentCaptures.slice(0, -1));
+    }
+
+    setCinematicBanner(null);
+    setTauntPopup(null);
+    setCameraImpact({ id: Date.now(), duration: 0, strength: 0 });
+    setUndoSignal((signal) => signal + 1);
+  }
+
   const lightPercent = Math.round(stageLighting * 100);
 
   return (
@@ -305,9 +325,19 @@ function App() {
             />
           </div>
 
-          <button className="reset-button" type="button" onClick={resetGame}>
-            New Game
-          </button>
+          <div className="game-action-buttons">
+            <button
+              className="undo-button"
+              disabled={moves.length === 0}
+              type="button"
+              onClick={undoMove}
+            >
+              Undo Move
+            </button>
+            <button className="reset-button" type="button" onClick={resetGame}>
+              New Game
+            </button>
+          </div>
         </div>
       </section>
 
@@ -355,6 +385,7 @@ function App() {
             onStatusChange={setGameStatus}
             onMove={handleMove}
             resetSignal={resetSignal}
+            undoSignal={undoSignal}
           />
           <OrbitControls
             dampingFactor={0.08}

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Html, Text } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { Chess } from "chess.js";
@@ -28,6 +28,7 @@ type BoardProps = {
   onStatusChange: (status: string) => void;
   onMove: (move: GameMove) => void;
   resetSignal: number;
+  undoSignal: number;
 };
 
 type CaptureAnimation = {
@@ -132,8 +133,9 @@ function getStatus(chess: Chess) {
   }`;
 }
 
-function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
+function Board({ onStatusChange, onMove, resetSignal, undoSignal }: BoardProps) {
   const [chess] = useState(() => new Chess());
+  const previousUndoSignalRef = useRef(undoSignal);
   const [selectedSquare, setSelectedSquare] = useState<Square | null>(null);
   const [, setPosition] = useState(chess.fen());
   const [captureAnimations, setCaptureAnimations] = useState<CaptureAnimation[]>([]);
@@ -163,6 +165,32 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
     setPosition(chess.fen());
     onStatusChange(getStatus(chess));
   }, [chess, onStatusChange, resetSignal]);
+
+  useEffect(() => {
+    if (undoSignal === previousUndoSignalRef.current) {
+      return;
+    }
+
+    previousUndoSignalRef.current = undoSignal;
+    const undoneMove = chess.undo();
+
+    if (!undoneMove) {
+      return;
+    }
+
+    const history = chess.history({ verbose: true });
+    const previousMove = history.at(-1);
+
+    setSelectedSquare(null);
+    setCaptureAnimations([]);
+    setAttackTrails([]);
+    setMovingPiece(null);
+    setPendingPromotion(null);
+    setHoveredSquare(null);
+    setLastMove(previousMove ? { from: previousMove.from, to: previousMove.to } : null);
+    setPosition(chess.fen());
+    onStatusChange(getStatus(chess));
+  }, [chess, onStatusChange, undoSignal]);
 
   useEffect(() => {
     if (!movingPiece) {
