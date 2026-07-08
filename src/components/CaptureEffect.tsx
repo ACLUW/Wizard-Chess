@@ -4,6 +4,7 @@ import type { Group } from "three";
 
 type CaptureEffectProps = {
   kind: "sparks" | "arcane" | "shockwave" | "inferno" | "royal";
+  intensity?: number;
   position: [number, number, number];
   onDone: () => void;
 };
@@ -66,17 +67,20 @@ const effectProfiles = {
   },
 } as const;
 
-function CaptureEffect({ kind, position, onDone }: CaptureEffectProps) {
+function CaptureEffect({ intensity = 0, kind, position, onDone }: CaptureEffectProps) {
   const groupRef = useRef<Group>(null);
   const isDoneRef = useRef(false);
   const [age, setAge] = useState(0);
   const profile = effectProfiles[kind];
+  const fireballPower = Math.max(0, intensity - 0.34);
+  const isMajorCapture = fireballPower > 0;
+  const duration = profile.duration + fireballPower * 1.25;
 
   const particles = useMemo(
     () =>
       Array.from({ length: profile.particleCount }, (_, index) => {
         const angle = (index / profile.particleCount) * Math.PI * 2;
-        const height = 0.18 + Math.random() * (kind === "shockwave" ? 0.35 : 0.9);
+        const height = 0.18 + Math.random() * (kind === "shockwave" ? 0.35 : 0.9 + fireballPower);
         const spiral = index % 3 === 0 ? 1.25 : 1;
 
         return {
@@ -85,10 +89,10 @@ function CaptureEffect({ kind, position, onDone }: CaptureEffectProps) {
             height,
             Math.sin(angle) * profile.burst * spiral,
           ] as [number, number, number],
-          size: 0.035 + Math.random() * (kind === "sparks" ? 0.035 : 0.08),
+          size: 0.035 + Math.random() * (kind === "sparks" ? 0.035 : 0.08 + fireballPower * 0.06),
         };
       }),
-    [kind, profile],
+    [fireballPower, kind, profile],
   );
 
   useFrame((_, delta) => {
@@ -96,28 +100,70 @@ function CaptureEffect({ kind, position, onDone }: CaptureEffectProps) {
     setAge(nextAge);
 
     if (groupRef.current) {
-      groupRef.current.scale.setScalar(1 + nextAge * (kind === "royal" ? 1.85 : 1.45));
-      groupRef.current.rotation.y += delta * (kind === "arcane" ? 5.2 : 3);
+      groupRef.current.scale.setScalar(1 + nextAge * (kind === "royal" ? 1.85 : 1.45) * (1 + fireballPower * 0.35));
+      groupRef.current.rotation.y += delta * (kind === "arcane" ? 5.2 : 3) * (isMajorCapture ? 0.58 : 1);
     }
 
-    if (nextAge > profile.duration && !isDoneRef.current) {
+    if (nextAge > duration && !isDoneRef.current) {
       isDoneRef.current = true;
       onDone();
     }
   });
 
-  const opacity = Math.max(0, 1 - age / profile.duration);
-  const impactLift = Math.min(age * 1.15, 0.9);
-  const ringExpansion = age * (kind === "royal" ? 2.3 : 1.7);
+  const progress = Math.min(1, age / duration);
+  const opacity = Math.max(0, 1 - progress);
+  const slowMotionBloom = isMajorCapture ? Math.sin(progress * Math.PI) : 0;
+  const impactLift = Math.min(age * (isMajorCapture ? 0.75 : 1.15), 0.9 + fireballPower * 0.4);
+  const ringExpansion = age * (kind === "royal" ? 2.3 : 1.7) * (1 + fireballPower * 0.4);
+  const fireballSize = profile.coreSize * (1.55 + fireballPower * 1.25) + slowMotionBloom * 0.35;
 
   return (
     <group ref={groupRef} position={position}>
-      <pointLight color={profile.mainColor} intensity={profile.light * opacity} distance={5.4} />
+      <pointLight
+        color={profile.mainColor}
+        intensity={profile.light * opacity * (1 + fireballPower * 1.6)}
+        distance={5.4 + fireballPower * 3.2}
+      />
 
       <mesh position={[0, 0.32 + impactLift * 0.18, 0]}>
         <sphereGeometry args={[profile.coreSize, 28, 24]} />
         <meshBasicMaterial color={profile.mainColor} transparent opacity={opacity * 0.58} />
       </mesh>
+
+      {isMajorCapture && (
+        <>
+          <mesh position={[0, 0.78 + impactLift * 0.3, 0]}>
+            <sphereGeometry args={[fireballSize, 36, 28]} />
+            <meshBasicMaterial color="#ff4b1f" transparent opacity={opacity * 0.48} />
+          </mesh>
+          <mesh position={[0, 0.8 + impactLift * 0.34, 0]}>
+            <sphereGeometry args={[fireballSize * 0.62, 28, 20]} />
+            <meshBasicMaterial color="#ffd166" transparent opacity={opacity * 0.7} />
+          </mesh>
+          <mesh position={[0, 0.82 + impactLift * 0.38, 0]}>
+            <sphereGeometry args={[fireballSize * 0.28, 18, 14]} />
+            <meshBasicMaterial color="#ffffff" transparent opacity={opacity * 0.58} />
+          </mesh>
+          {[0, 1, 2, 3, 4, 5].map((index) => {
+            const angle = (index / 6) * Math.PI * 2 + age * 0.55;
+
+            return (
+              <mesh
+                key={`flame-${index}`}
+                position={[
+                  Math.cos(angle) * fireballSize * 0.72,
+                  0.82 + impactLift * 0.42 + Math.sin(age * 2 + index) * 0.06,
+                  Math.sin(angle) * fireballSize * 0.72,
+                ]}
+                rotation={[Math.PI / 2, 0, -angle]}
+              >
+                <coneGeometry args={[0.08 + fireballPower * 0.08, 0.55 + fireballPower * 0.42, 8]} />
+                <meshBasicMaterial color={index % 2 === 0 ? "#ff7a1f" : "#ffd166"} transparent opacity={opacity * 0.62} />
+              </mesh>
+            );
+          })}
+        </>
+      )}
 
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.05, 0]}>
         <ringGeometry args={[profile.ringSize + ringExpansion, profile.ringSize + 0.08 + ringExpansion * 1.12, 48]} />

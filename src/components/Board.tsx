@@ -20,6 +20,8 @@ export type GameMove = {
   effectKind: AttackEffectKind;
   outcome?: "check" | "checkmate" | "draw";
   captured?: CapturedPiece;
+  capturedSquare?: Square;
+  captureSignificance?: number;
 };
 
 type BoardProps = {
@@ -32,6 +34,7 @@ type CaptureAnimation = {
   id: number;
   kind: Exclude<AttackEffectKind, "move">;
   position: [number, number, number];
+  intensity: number;
 };
 
 type AttackTrailAnimation = {
@@ -71,6 +74,15 @@ const pieceCaptureEffects: Record<PieceSymbol, Exclude<AttackEffectKind, "move">
   k: "royal",
 };
 
+const pieceCaptureValues: Record<PieceSymbol, number> = {
+  p: 1,
+  n: 3,
+  b: 3,
+  r: 5,
+  q: 9,
+  k: 12,
+};
+
 const promotionOptions: Array<{ type: PromotionPiece; label: string; symbol: string }> = [
   { type: "q", label: "Queen", symbol: "♛" },
   { type: "r", label: "Rook", symbol: "♜" },
@@ -91,6 +103,19 @@ function squareToPosition(square: Square): [number, number, number] {
   const row = 8 - Number(square[1]);
 
   return toPosition(row, col);
+}
+
+function getCaptureSignificance(piece: PieceSymbol | undefined, row: number, col: number) {
+  if (!piece) {
+    return 0;
+  }
+
+  const centerDistance = Math.abs(row - 3.5) + Math.abs(col - 3.5);
+  const centerControl = Math.max(0, 1 - centerDistance / 7);
+  const backRankPressure = row === 0 || row === 7 ? 0.12 : 0;
+  const roleWeight = pieceCaptureValues[piece] / pieceCaptureValues.k;
+
+  return Math.min(1, roleWeight * 0.82 + centerControl * 0.18 + backRankPressure);
 }
 
 function getStatus(chess: Chess) {
@@ -333,6 +358,7 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
       {captureAnimations.map((animation) => (
         <CaptureEffect
           key={animation.id}
+          intensity={animation.intensity}
           kind={animation.kind}
           position={animation.position}
           onDone={() =>
@@ -446,6 +472,7 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
     const isCheckmate = chess.isCheckmate();
     const isDraw = chess.isDraw();
     const isCheck = chess.isCheck();
+    const captureSignificance = getCaptureSignificance(capturedPiece, row, col);
     const effectKind: AttackEffectKind = isCheckmate
       ? "royal"
       : capturedPiece
@@ -469,6 +496,7 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
         ...current,
         {
           id: Date.now() + 1,
+          intensity: isCheckmate ? 1 : captureSignificance,
           kind: trailKind,
           position: targetPosition,
         },
@@ -495,6 +523,8 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
             color: move.color === "w" ? "b" : "w",
           }
         : undefined,
+      capturedSquare: capturedPiece ? to : undefined,
+      captureSignificance: capturedPiece ? captureSignificance : undefined,
     });
     onStatusChange(getStatus(chess));
   }

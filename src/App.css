@@ -325,6 +325,99 @@ body {
   text-shadow: 0 0 20px rgba(255, 122, 31, 0.62);
 }
 
+.taunt-popup {
+  position: absolute;
+  z-index: 6;
+  right: clamp(12px, 3vw, 28px);
+  bottom: clamp(14px, 4vw, 34px);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  width: min(430px, calc(100% - 28px));
+  padding: 14px 16px;
+  color: #fff0d7;
+  border: 1px solid rgba(255, 209, 102, 0.42);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at top left, rgba(255, 209, 102, 0.22), transparent 38%),
+    linear-gradient(135deg, rgba(45, 11, 4, 0.92), rgba(8, 2, 1, 0.86));
+  box-shadow:
+    0 0 0 1px rgba(255, 91, 31, 0.18),
+    0 20px 70px rgba(0, 0, 0, 0.58),
+    0 0 54px rgba(255, 81, 31, 0.24);
+  pointer-events: none;
+  animation: taunt-slam 3.6s cubic-bezier(0.18, 0.92, 0.26, 1) both;
+}
+
+.taunt-piece {
+  display: grid;
+  place-items: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 16px;
+  color: #1b0702;
+  background: linear-gradient(135deg, #ffd166, #ff7a1f);
+  box-shadow: 0 0 28px rgba(255, 122, 31, 0.45);
+  font-size: 32px;
+}
+
+.taunt-popup strong {
+  display: block;
+  color: #ffd166;
+  font-size: clamp(15px, 2vw, 20px);
+  font-weight: 950;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.taunt-popup p {
+  margin: 5px 0 0;
+  color: #ffe7c7;
+  font-size: clamp(13px, 1.6vw, 16px);
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.taunt-q {
+  border-color: rgba(255, 36, 79, 0.58);
+  box-shadow:
+    0 0 0 1px rgba(255, 36, 79, 0.18),
+    0 20px 70px rgba(0, 0, 0, 0.6),
+    0 0 64px rgba(255, 36, 79, 0.34);
+}
+
+.taunt-r {
+  border-color: rgba(255, 184, 90, 0.58);
+}
+
+.taunt-n,
+.taunt-b {
+  border-color: rgba(87, 247, 255, 0.42);
+}
+
+@keyframes taunt-slam {
+  0% {
+    opacity: 0;
+    transform: translate(34px, 22px) rotate(2deg) scale(0.78);
+  }
+
+  10% {
+    opacity: 1;
+    transform: translate(-8px, -8px) rotate(-1deg) scale(1.06);
+  }
+
+  18%,
+  78% {
+    opacity: 1;
+    transform: translate(0, 0) rotate(0) scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(28px, 12px) rotate(-1deg) scale(0.92);
+  }
+}
+
 @keyframes cinematic-pop {
   0% {
     opacity: 0;

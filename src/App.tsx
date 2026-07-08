@@ -17,6 +17,42 @@ const pieceSymbols: Record<CapturedPiece["type"], string> = {
   k: "\u265A",
 };
 
+const pieceNames: Record<CapturedPiece["type"], string> = {
+  p: "Pawn",
+  r: "Rook",
+  n: "Knight",
+  b: "Bishop",
+  q: "Queen",
+  k: "King",
+};
+
+const captureTaunts: Record<CapturedPiece["type"], string[]> = {
+  p: [
+    "Tiny soldier down. The road just got cleaner.",
+    "One pawn less, one plan ruined.",
+  ],
+  r: [
+    "Hahaha, now I have got my edges covered. What else can you do?",
+    "Your fortress lost a tower. The walls are listening to me now.",
+  ],
+  n: [
+    "That horse stopped jumping. Try a straight answer next time.",
+    "No more sneaky L-shapes. I saw that circus trick coming.",
+  ],
+  b: [
+    "Your diagonal prophet just ran out of sermons.",
+    "That bishop blessed the wrong square.",
+  ],
+  q: [
+    "The crown jewel is gone. Your kingdom just got very quiet.",
+    "Queen captured. I hope your backup plan has teeth.",
+  ],
+  k: [
+    "The throne is empty. Bow to the blast radius.",
+    "King down. The arena accepts your resignation.",
+  ],
+};
+
 const effectLabels: Record<GameMove["effectKind"], string> = {
   move: "Move",
   sparks: "Spark hit",
@@ -46,6 +82,13 @@ type CinematicBannerState = {
   tone: "check" | "checkmate" | "draw" | "capture";
   title: string;
   detail: string;
+};
+
+type TauntPopupState = {
+  id: number;
+  pieceType: CapturedPiece["type"];
+  title: string;
+  quote: string;
 };
 
 function ResponsiveCamera() {
@@ -124,6 +167,7 @@ function App() {
     strength: 0,
   });
   const [cinematicBanner, setCinematicBanner] = useState<CinematicBannerState | null>(null);
+  const [tauntPopup, setTauntPopup] = useState<TauntPopupState | null>(null);
 
   useEffect(() => {
     if (!cinematicBanner) {
@@ -138,12 +182,47 @@ function App() {
     return () => window.clearTimeout(timeoutId);
   }, [cinematicBanner]);
 
+  useEffect(() => {
+    if (!tauntPopup) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(
+      () => setTauntPopup((current) => (current?.id === tauntPopup.id ? null : current)),
+      3600,
+    );
+
+    return () => window.clearTimeout(timeoutId);
+  }, [tauntPopup]);
+
+  function getCaptureTaunt(move: GameMove) {
+    if (!move.captured || move.captured.type === "p") {
+      return null;
+    }
+
+    const taunts = captureTaunts[move.captured.type];
+    const tauntIndex = (move.notation.length + (move.capturedSquare?.charCodeAt(0) ?? 0)) % taunts.length;
+
+    return {
+      id: Date.now() + 11,
+      pieceType: move.captured.type,
+      title: `${pieceNames[move.captured.type]} captured${move.capturedSquare ? ` on ${move.capturedSquare}` : ""}`,
+      quote: taunts[tauntIndex],
+    };
+  }
+
   function handleMove(move: GameMove) {
     playAttackSound(move.effectKind);
     setMoves((currentMoves) => [...currentMoves, move]);
 
     if (move.captured) {
       setCaptures((currentCaptures) => [...currentCaptures, move.captured!]);
+
+      const taunt = getCaptureTaunt(move);
+
+      if (taunt) {
+        setTauntPopup(taunt);
+      }
     }
 
     const outcomeImpact = move.outcome === "checkmate" ? 0.16 : move.outcome === "check" ? 0.06 : 0;
@@ -193,6 +272,7 @@ function App() {
     setMoves([]);
     setCaptures([]);
     setCinematicBanner(null);
+    setTauntPopup(null);
     setCameraImpact({ id: Date.now(), duration: 0, strength: 0 });
     setResetSignal((signal) => signal + 1);
   }
@@ -236,6 +316,15 @@ function App() {
           <div className={`cinematic-banner cinematic-${cinematicBanner.tone}`}>
             <strong>{cinematicBanner.title}</strong>
             <span>{cinematicBanner.detail}</span>
+          </div>
+        )}
+        {tauntPopup && (
+          <div className={`taunt-popup taunt-${tauntPopup.pieceType}`}>
+            <span className="taunt-piece">{pieceSymbols[tauntPopup.pieceType]}</span>
+            <div>
+              <strong>{tauntPopup.title}</strong>
+              <p>{tauntPopup.quote}</p>
+            </div>
           </div>
         )}
         <Canvas
