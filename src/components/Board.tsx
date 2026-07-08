@@ -420,7 +420,7 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
   function isPromotionMove(from: Square, to: Square) {
     return chess
       .moves({ square: from, verbose: true })
-      .some((move) => move.to === to && "promotion" in move);
+      .some((move) => move.to === to && Boolean(move.promotion));
   }
 
   function commitMove(
