@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Text } from "@react-three/drei";
+import { Html, Text } from "@react-three/drei";
 import { Chess } from "chess.js";
 import type { PieceSymbol, Square } from "chess.js";
 import CaptureEffect from "./CaptureEffect";
@@ -11,9 +11,12 @@ export type CapturedPiece = {
   color: "w" | "b";
 };
 
+export type AttackEffectKind = "move" | "sparks" | "arcane" | "shockwave" | "inferno" | "royal";
+
 export type GameMove = {
   notation: string;
-  effectKind: "move" | "sparks" | "fire";
+  effectKind: AttackEffectKind;
+  outcome?: "check" | "checkmate" | "draw";
   captured?: CapturedPiece;
 };
 
@@ -25,8 +28,17 @@ type BoardProps = {
 
 type CaptureAnimation = {
   id: number;
-  kind: "sparks" | "fire";
+  kind: Exclude<AttackEffectKind, "move">;
   position: [number, number, number];
+};
+
+type PromotionPiece = "q" | "r" | "b" | "n";
+
+type PendingPromotion = {
+  from: Square;
+  to: Square;
+  row: number;
+  col: number;
 };
 
 type MovingPiece = {
@@ -35,7 +47,21 @@ type MovingPiece = {
 };
 
 const files = ["a", "b", "c", "d", "e", "f", "g", "h"];
-const royalPieces: PieceSymbol[] = ["r", "n", "b", "q", "k"];
+const pieceCaptureEffects: Record<PieceSymbol, Exclude<AttackEffectKind, "move">> = {
+  p: "sparks",
+  n: "arcane",
+  b: "arcane",
+  r: "shockwave",
+  q: "inferno",
+  k: "royal",
+};
+
+const promotionOptions: Array<{ type: PromotionPiece; label: string; symbol: string }> = [
+  { type: "q", label: "Queen", symbol: "♛" },
+  { type: "r", label: "Rook", symbol: "♜" },
+  { type: "b", label: "Bishop", symbol: "♝" },
+  { type: "n", label: "Knight", symbol: "♞" },
+];
 
 function toSquare(row: number, col: number) {
   return `${files[col]}${8 - row}` as Square;
@@ -72,6 +98,7 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
   const [, setPosition] = useState(chess.fen());
   const [captureAnimations, setCaptureAnimations] = useState<CaptureAnimation[]>([]);
   const [movingPiece, setMovingPiece] = useState<MovingPiece | null>(null);
+  const [pendingPromotion, setPendingPromotion] = useState<PendingPromotion | null>(null);
   const ivoryTileTexture = useMemo(
     () => createStoneTexture("ivoryTile", stoneTexturePresets.ivoryTile),
     [],
@@ -86,6 +113,7 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
     setSelectedSquare(null);
     setCaptureAnimations([]);
     setMovingPiece(null);
+    setPendingPromotion(null);
     setPosition(chess.fen());
     onStatusChange(getStatus(chess));
   }, [chess, onStatusChange, resetSignal]);
@@ -230,6 +258,24 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
           }
         />
       ))}
+      {pendingPromotion && (
+        <PromotionPicker
+          color={chess.turn()}
+          onCancel={() => {
+            setPendingPromotion(null);
+            setSelectedSquare(null);
+          }}
+          onSelect={(promotion) =>
+            commitMove(
+              pendingPromotion.from,
+              pendingPromotion.to,
+              pendingPromotion.row,
+              pendingPromotion.col,
+              promotion,
+            )
+          }
+        />
+      )}
     </group>
   );
 
@@ -246,6 +292,10 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
   }
 
   function handleSquarePress(square: Square, row: number, col: number) {
+    if (pendingPromotion) {
+      return;
+    }
+
     const piece = chess.get(square);
 
     if (!selectedSquare) {
@@ -266,46 +316,76 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
       return;
     }
 
+    if (isPromotionMove(selectedSquare, square)) {
+      setPendingPromotion({
+        from: selectedSquare,
+        to: square,
+        row,
+        col,
+      });
+      return;
+    }
+
+    commitMove(selectedSquare, square, row, col);
+  }
+
+  function isPromotionMove(from: Square, to: Square) {
+    return chess
+      .moves({ square: from, verbose: true })
+      .some((move) => move.to === to && "promotion" in move);
+  }
+
+  function commitMove(
+    from: Square,
+    to: Square,
+    row: number,
+    col: number,
+    promotion?: PromotionPiece,
+  ) {
     const move = chess.move({
-      from: selectedSquare,
-      to: square,
-      promotion: "q",
+      from,
+      to,
+      promotion,
     });
 
     if (!move) {
       setSelectedSquare(null);
+      setPendingPromotion(null);
       return;
     }
 
     const capturedPiece = move.captured;
-    const effectKind = capturedPiece
-      ? royalPieces.includes(capturedPiece)
-        ? "fire"
-        : "sparks"
-      : "move";
+    const isCheckmate = chess.isCheckmate();
+    const isDraw = chess.isDraw();
+    const isCheck = chess.isCheck();
+    const effectKind: AttackEffectKind = isCheckmate
+      ? "royal"
+      : capturedPiece
+        ? pieceCaptureEffects[capturedPiece]
+        : "move";
 
-    if (capturedPiece) {
-      const captureKind = royalPieces.includes(capturedPiece) ? "fire" : "sparks";
-
+    if (capturedPiece || isCheckmate) {
       setCaptureAnimations((current) => [
         ...current,
         {
           id: Date.now(),
-          kind: captureKind,
+          kind: effectKind === "move" ? "sparks" : effectKind,
           position: toPosition(row, col),
         },
       ]);
     }
 
     setMovingPiece({
-      to: square,
-      fromPosition: squareToPosition(selectedSquare),
+      to,
+      fromPosition: squareToPosition(from),
     });
     setPosition(chess.fen());
     setSelectedSquare(null);
+    setPendingPromotion(null);
     onMove({
       notation: move.san,
       effectKind,
+      outcome: isCheckmate ? "checkmate" : isDraw ? "draw" : isCheck ? "check" : undefined,
       captured: capturedPiece
         ? {
             type: capturedPiece,
@@ -315,6 +395,40 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
     });
     onStatusChange(getStatus(chess));
   }
+}
+
+function PromotionPicker({
+  color,
+  onCancel,
+  onSelect,
+}: {
+  color: "w" | "b";
+  onCancel: () => void;
+  onSelect: (piece: PromotionPiece) => void;
+}) {
+  return (
+    <Html center position={[0, 2.35, 0]}>
+      <div className="promotion-panel" onPointerDown={(event) => event.stopPropagation()}>
+        <p>{color === "w" ? "White" : "Black"} pawn promotion</p>
+        <div className="promotion-options">
+          {promotionOptions.map((option) => (
+            <button
+              key={option.type}
+              className={color === "w" ? "promotion-white" : "promotion-black"}
+              type="button"
+              onClick={() => onSelect(option.type)}
+            >
+              <span>{option.symbol}</span>
+              {option.label}
+            </button>
+          ))}
+        </div>
+        <button className="promotion-cancel" type="button" onClick={onCancel}>
+          Cancel
+        </button>
+      </div>
+    </Html>
+  );
 }
 
 export default Board;

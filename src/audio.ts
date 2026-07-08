@@ -1,4 +1,4 @@
-export type AttackSoundKind = "move" | "sparks" | "fire";
+export type AttackSoundKind = "move" | "sparks" | "arcane" | "shockwave" | "inferno" | "royal";
 
 let audioContext: AudioContext | null = null;
 
@@ -45,6 +45,26 @@ export function playAttackSound(kind: AttackSoundKind) {
     return;
   }
 
-  playTone(context, 95, now, 0.25, "sawtooth", 0.08);
-  playTone(context, 240, now + 0.04, 0.18, "triangle", 0.055);
+  if (kind === "arcane") {
+    playTone(context, 420, now, 0.12, "triangle", 0.045);
+    playTone(context, 880, now + 0.035, 0.16, "sine", 0.035);
+    return;
+  }
+
+  if (kind === "shockwave") {
+    playTone(context, 135, now, 0.18, "sawtooth", 0.075);
+    playTone(context, 72, now + 0.055, 0.28, "triangle", 0.055);
+    return;
+  }
+
+  if (kind === "inferno") {
+    playTone(context, 95, now, 0.25, "sawtooth", 0.08);
+    playTone(context, 240, now + 0.04, 0.18, "triangle", 0.055);
+    playTone(context, 520, now + 0.09, 0.22, "square", 0.028);
+    return;
+  }
+
+  playTone(context, 64, now, 0.36, "sawtooth", 0.09);
+  playTone(context, 180, now + 0.08, 0.28, "triangle", 0.06);
+  playTone(context, 760, now + 0.16, 0.32, "sine", 0.04);
 }

@@ -1,6 +1,6 @@
 import { Environment, OrbitControls } from "@react-three/drei";
-import { Canvas, useThree } from "@react-three/fiber";
-import { useEffect, useState } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { useEffect, useRef, useState } from "react";
 import { playAttackSound } from "./audio";
 import "./App.css";
 import Board from "./components/Board";
@@ -14,6 +14,37 @@ const pieceSymbols: Record<CapturedPiece["type"], string> = {
   b: "\u265D",
   q: "\u265B",
   k: "\u265A",
+};
+
+const effectLabels: Record<GameMove["effectKind"], string> = {
+  move: "Move",
+  sparks: "Spark hit",
+  arcane: "Arcane strike",
+  shockwave: "Shockwave",
+  inferno: "Inferno",
+  royal: "Royal blast",
+};
+
+const impactStrength: Record<GameMove["effectKind"], number> = {
+  move: 0,
+  sparks: 0.035,
+  arcane: 0.05,
+  shockwave: 0.075,
+  inferno: 0.095,
+  royal: 0.13,
+};
+
+type CameraImpact = {
+  id: number;
+  duration: number;
+  strength: number;
+};
+
+type CinematicBannerState = {
+  id: number;
+  tone: "check" | "checkmate" | "draw" | "capture";
+  title: string;
+  detail: string;
 };
 
 function ResponsiveCamera() {
@@ -38,12 +69,72 @@ function ResponsiveCamera() {
   return null;
 }
 
+function CameraImpactShake({ impact }: { impact: CameraImpact }) {
+  const { camera } = useThree();
+  const remainingRef = useRef(0);
+  const strengthRef = useRef(0);
+  const offsetRef = useRef<[number, number, number]>([0, 0, 0]);
+
+  useEffect(() => {
+    remainingRef.current = impact.duration;
+    strengthRef.current = impact.strength;
+  }, [impact]);
+
+  useFrame((_, delta) => {
+    const [previousX, previousY, previousZ] = offsetRef.current;
+    camera.position.x -= previousX;
+    camera.position.y -= previousY;
+    camera.position.z -= previousZ;
+
+    if (remainingRef.current <= 0 || strengthRef.current <= 0) {
+      offsetRef.current = [0, 0, 0];
+      return;
+    }
+
+    remainingRef.current = Math.max(0, remainingRef.current - delta);
+    const falloff = remainingRef.current / impact.duration;
+    const strength = strengthRef.current * falloff * falloff;
+    const nextOffset: [number, number, number] = [
+      (Math.random() - 0.5) * strength,
+      (Math.random() - 0.5) * strength * 0.55,
+      (Math.random() - 0.5) * strength,
+    ];
+
+    camera.position.x += nextOffset[0];
+    camera.position.y += nextOffset[1];
+    camera.position.z += nextOffset[2];
+    camera.lookAt(0, 0, 0);
+    offsetRef.current = nextOffset;
+  });
+
+  return null;
+}
+
 function App() {
   const [gameStatus, setGameStatus] = useState("White to move");
   const [moves, setMoves] = useState<GameMove[]>([]);
   const [captures, setCaptures] = useState<CapturedPiece[]>([]);
   const [resetSignal, setResetSignal] = useState(0);
   const [stageLighting, setStageLighting] = useState(1);
+  const [cameraImpact, setCameraImpact] = useState<CameraImpact>({
+    id: 0,
+    duration: 0,
+    strength: 0,
+  });
+  const [cinematicBanner, setCinematicBanner] = useState<CinematicBannerState | null>(null);
+
+  useEffect(() => {
+    if (!cinematicBanner) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(
+      () => setCinematicBanner((current) => (current?.id === cinematicBanner.id ? null : current)),
+      cinematicBanner.tone === "checkmate" ? 3200 : 1900,
+    );
+
+    return () => window.clearTimeout(timeoutId);
+  }, [cinematicBanner]);
 
   function handleMove(move: GameMove) {
     playAttackSound(move.effectKind);
@@ -52,12 +143,55 @@ function App() {
     if (move.captured) {
       setCaptures((currentCaptures) => [...currentCaptures, move.captured!]);
     }
+
+    const outcomeImpact = move.outcome === "checkmate" ? 0.16 : move.outcome === "check" ? 0.06 : 0;
+    const strength = Math.max(impactStrength[move.effectKind], outcomeImpact);
+
+    if (strength > 0) {
+      setCameraImpact({
+        id: Date.now(),
+        duration: move.outcome === "checkmate" ? 1.1 : 0.65,
+        strength,
+      });
+    }
+
+    if (move.outcome === "checkmate") {
+      setCinematicBanner({
+        id: Date.now(),
+        tone: "checkmate",
+        title: "Checkmate",
+        detail: `${move.notation} ends the battle`,
+      });
+    } else if (move.outcome === "check") {
+      setCinematicBanner({
+        id: Date.now(),
+        tone: "check",
+        title: "Check",
+        detail: `${move.notation} threatens the king`,
+      });
+    } else if (move.outcome === "draw") {
+      setCinematicBanner({
+        id: Date.now(),
+        tone: "draw",
+        title: "Draw",
+        detail: "The duel ends in balance",
+      });
+    } else if (move.effectKind !== "move") {
+      setCinematicBanner({
+        id: Date.now(),
+        tone: "capture",
+        title: effectLabels[move.effectKind],
+        detail: `${move.notation} lands successfully`,
+      });
+    }
   }
 
   function resetGame() {
     setGameStatus("White to move");
     setMoves([]);
     setCaptures([]);
+    setCinematicBanner(null);
+    setCameraImpact({ id: Date.now(), duration: 0, strength: 0 });
     setResetSignal((signal) => signal + 1);
   }
 
@@ -96,12 +230,19 @@ function App() {
       </section>
 
       <section className="game-stage">
+        {cinematicBanner && (
+          <div className={`cinematic-banner cinematic-${cinematicBanner.tone}`}>
+            <strong>{cinematicBanner.title}</strong>
+            <span>{cinematicBanner.detail}</span>
+          </div>
+        )}
         <Canvas
           camera={{ position: [0, 8.15, 8.8], fov: 39 }}
           dpr={[1, 2]}
           gl={{ antialias: true, powerPreference: "high-performance" }}
         >
           <ResponsiveCamera />
+          <CameraImpactShake impact={cameraImpact} />
           <Environment preset="night" />
           <color args={["#140806"]} attach="background" />
           <fog attach="fog" args={["#160906", 10, 24]} />
@@ -164,7 +305,14 @@ function App() {
               <li>Tap a piece to begin</li>
             ) : (
               moves.slice(-8).map((move, index) => (
-                <li key={`${move.notation}-${index}`}>{move.notation}</li>
+                <li key={`${move.notation}-${index}`}>
+                  <span>{move.notation}</span>
+                  {move.effectKind !== "move" && (
+                    <em className={`effect-badge effect-${move.effectKind}`}>
+                      {effectLabels[move.effectKind]}
+                    </em>
+                  )}
+                </li>
               ))
             )}
           </ol>
