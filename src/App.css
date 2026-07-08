@@ -638,6 +638,45 @@ body {
   line-height: 1.4;
 }
 
+.tutorial-subtitle {
+  margin: 24px 0 12px;
+  color: #9ffbff;
+  font-size: clamp(18px, 2.4vw, 26px);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-shadow: 0 0 18px rgba(87, 247, 255, 0.28);
+}
+
+.piece-guide-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.piece-guide-grid article {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid rgba(87, 247, 255, 0.18);
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(87, 247, 255, 0.08), transparent),
+    rgba(255, 255, 255, 0.05);
+}
+
+.piece-guide-grid span {
+  color: #ffe7c7;
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+
+.piece-guide-grid p {
+  margin: 0;
+  color: #f1d6bd;
+  line-height: 1.45;
+}
+
 .tutorial-tips {
   display: flex;
   flex-wrap: wrap;
@@ -668,6 +707,10 @@ body {
   }
 
   .tutorial-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .piece-guide-grid {
     grid-template-columns: 1fr;
   }
 

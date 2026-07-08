@@ -382,6 +382,52 @@ function App() {
               </article>
             </div>
 
+            <h3 className="tutorial-subtitle">How the pieces move</h3>
+            <div className="piece-guide-grid">
+              <article>
+                <span>♙ Pawn</span>
+                <p>
+                  Moves forward one square, or two from its starting rank. It captures one
+                  square diagonally forward and promotes when it reaches the far side.
+                </p>
+              </article>
+              <article>
+                <span>♖ Rook</span>
+                <p>
+                  Moves any number of squares in straight lines: forward, backward, left,
+                  or right. Great for open files and castling protection.
+                </p>
+              </article>
+              <article>
+                <span>♘ Knight</span>
+                <p>
+                  Moves in an L-shape: two squares in one direction, then one sideways.
+                  It is the only piece that can jump over other pieces.
+                </p>
+              </article>
+              <article>
+                <span>♗ Bishop</span>
+                <p>
+                  Moves any number of squares diagonally. Each bishop stays forever on
+                  the same color square it started on.
+                </p>
+              </article>
+              <article>
+                <span>♕ Queen</span>
+                <p>
+                  Moves any number of squares in any straight or diagonal direction. She
+                  is your strongest attacker and defender.
+                </p>
+              </article>
+              <article>
+                <span>♔ King</span>
+                <p>
+                  Moves one square in any direction. Protect him at all costs: if he is
+                  trapped in check, the game is checkmate.
+                </p>
+              </article>
+            </div>
+
             <div className="tutorial-tips">
               <span>Drag to orbit</span>
               <span>Scroll or pinch to zoom</span>
