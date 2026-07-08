@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Html, Text } from "@react-three/drei";
 import { Chess } from "chess.js";
 import type { PieceSymbol, Square } from "chess.js";
+import AttackTrail from "./AttackTrail";
 import CaptureEffect from "./CaptureEffect";
 import Piece from "./Piece";
 import { createStoneTexture, stoneTexturePresets } from "../materials/stoneTextures";
@@ -30,6 +31,13 @@ type CaptureAnimation = {
   id: number;
   kind: Exclude<AttackEffectKind, "move">;
   position: [number, number, number];
+};
+
+type AttackTrailAnimation = {
+  id: number;
+  from: [number, number, number];
+  to: [number, number, number];
+  kind: Exclude<AttackEffectKind, "move">;
 };
 
 type PromotionPiece = "q" | "r" | "b" | "n";
@@ -97,6 +105,7 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
   const [selectedSquare, setSelectedSquare] = useState<Square | null>(null);
   const [, setPosition] = useState(chess.fen());
   const [captureAnimations, setCaptureAnimations] = useState<CaptureAnimation[]>([]);
+  const [attackTrails, setAttackTrails] = useState<AttackTrailAnimation[]>([]);
   const [movingPiece, setMovingPiece] = useState<MovingPiece | null>(null);
   const [pendingPromotion, setPendingPromotion] = useState<PendingPromotion | null>(null);
   const ivoryTileTexture = useMemo(
@@ -112,6 +121,7 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
     chess.reset();
     setSelectedSquare(null);
     setCaptureAnimations([]);
+    setAttackTrails([]);
     setMovingPiece(null);
     setPendingPromotion(null);
     setPosition(chess.fen());
@@ -246,6 +256,19 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
       {squares}
       {labels}
       {pieces}
+      {attackTrails.map((trail) => (
+        <AttackTrail
+          key={trail.id}
+          from={trail.from}
+          kind={trail.kind}
+          to={trail.to}
+          onDone={() =>
+            setAttackTrails((current) =>
+              current.filter((item) => item.id !== trail.id),
+            )
+          }
+        />
+      ))}
       {captureAnimations.map((animation) => (
         <CaptureEffect
           key={animation.id}
@@ -365,12 +388,24 @@ function Board({ onStatusChange, onMove, resetSignal }: BoardProps) {
         : "move";
 
     if (capturedPiece || isCheckmate) {
-      setCaptureAnimations((current) => [
+      const trailKind = effectKind === "move" ? "sparks" : effectKind;
+      const targetPosition = toPosition(row, col);
+
+      setAttackTrails((current) => [
         ...current,
         {
           id: Date.now(),
-          kind: effectKind === "move" ? "sparks" : effectKind,
-          position: toPosition(row, col),
+          from: squareToPosition(from),
+          kind: trailKind,
+          to: targetPosition,
+        },
+      ]);
+      setCaptureAnimations((current) => [
+        ...current,
+        {
+          id: Date.now() + 1,
+          kind: trailKind,
+          position: targetPosition,
         },
       ]);
     }
