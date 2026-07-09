@@ -638,6 +638,30 @@ body {
   min-width: min(360px, 100%);
 }
 
+.online-button {
+  cursor: pointer;
+  border: 1px solid rgba(87, 247, 255, 0.42);
+  border-radius: 999px;
+  padding: 10px 16px;
+  color: #9ffbff;
+  background:
+    linear-gradient(135deg, rgba(87, 247, 255, 0.12), rgba(255, 122, 31, 0.12)),
+    rgba(18, 7, 5, 0.82);
+  box-shadow: 0 0 24px rgba(87, 247, 255, 0.12);
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.online-button:hover,
+.online-button-active {
+  border-color: #57f7ff;
+  color: #ffffff;
+  box-shadow:
+    0 0 28px rgba(87, 247, 255, 0.24),
+    inset 0 0 20px rgba(87, 247, 255, 0.08);
+}
+
 .hero-panel .lighting-panel {
   border-color: rgba(255, 202, 128, 0.48);
   box-shadow:
@@ -697,6 +721,145 @@ body {
   box-shadow:
     0 30px 90px rgba(0, 0, 0, 0.62),
     inset 0 0 42px rgba(255, 101, 20, 0.12);
+}
+
+.online-panel {
+  position: relative;
+  width: min(560px, calc(100vw - 2rem));
+  padding: clamp(22px, 4vw, 36px);
+  border: 1px solid rgba(87, 247, 255, 0.38);
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at top, rgba(87, 247, 255, 0.12), transparent 38%),
+    linear-gradient(135deg, rgba(25, 9, 6, 0.98), rgba(7, 3, 3, 0.98));
+  box-shadow:
+    0 30px 100px rgba(0, 0, 0, 0.7),
+    inset 0 0 48px rgba(255, 122, 31, 0.1);
+}
+
+.online-panel h2 {
+  margin: 0;
+  color: #ffe7c7;
+  font-size: clamp(27px, 5vw, 44px);
+}
+
+.online-intro {
+  color: #f1d6bd;
+  line-height: 1.55;
+}
+
+.online-actions {
+  display: grid;
+  gap: 14px;
+  margin: 22px 0;
+}
+
+.create-room-button,
+.join-room-form button,
+.copy-code-button,
+.leave-room-button {
+  cursor: pointer;
+  border: 0;
+  border-radius: 999px;
+  padding: 12px 16px;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.create-room-button,
+.join-room-form button,
+.copy-code-button {
+  color: #100603;
+  background: linear-gradient(135deg, #57f7ff, #ffd166);
+}
+
+.create-room-button:disabled,
+.join-room-form button:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
+.join-room-form {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+}
+
+.join-room-form input {
+  min-width: 0;
+  border: 1px solid rgba(87, 247, 255, 0.34);
+  border-radius: 999px;
+  padding: 12px 16px;
+  color: #ffffff;
+  outline: none;
+  background: rgba(255, 255, 255, 0.07);
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.join-room-form input:focus {
+  border-color: #57f7ff;
+  box-shadow: 0 0 18px rgba(87, 247, 255, 0.18);
+}
+
+.room-card {
+  display: grid;
+  gap: 12px;
+  margin: 22px 0;
+  padding: 20px;
+  text-align: center;
+  border: 1px solid rgba(255, 209, 102, 0.28);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.room-card > span {
+  color: #ffbd70;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.room-card > strong {
+  color: #9ffbff;
+  font-size: clamp(34px, 9vw, 58px);
+  letter-spacing: 0.16em;
+  text-shadow: 0 0 22px rgba(87, 247, 255, 0.35);
+}
+
+.room-card p {
+  margin: 0;
+  color: #f1d6bd;
+  line-height: 1.5;
+}
+
+.leave-room-button {
+  color: #ffc3ae;
+  border: 1px solid rgba(255, 93, 54, 0.34);
+  background: rgba(91, 20, 9, 0.32);
+}
+
+.connection-status {
+  margin: 12px 0 0;
+  color: #ffb39a;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.connection-status.connected {
+  color: #8dffbe;
+}
+
+.online-error {
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  color: #ffd1c4;
+  border: 1px solid rgba(255, 71, 45, 0.35);
+  border-radius: 12px;
+  background: rgba(121, 25, 12, 0.24);
 }
 
 .tutorial-close {

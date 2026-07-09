@@ -7,6 +7,7 @@ import Board from "./components/Board";
 import CapturedGraveyard from "./components/CapturedGraveyard";
 import FireArena from "./components/FireArena";
 import type { CapturedPiece, GameMove } from "./components/Board";
+import { useMultiplayer } from "./multiplayer";
 
 const pieceSymbols: Record<CapturedPiece["type"], string> = {
   p: "\u265F",
@@ -155,6 +156,7 @@ function CameraImpactShake({ impact }: { impact: CameraImpact }) {
 }
 
 function App() {
+  const multiplayer = useMultiplayer();
   const [gameStatus, setGameStatus] = useState("White to move");
   const [moves, setMoves] = useState<GameMove[]>([]);
   const [captures, setCaptures] = useState<CapturedPiece[]>([]);
@@ -162,6 +164,8 @@ function App() {
   const [undoSignal, setUndoSignal] = useState(0);
   const [stageLighting, setStageLighting] = useState(1);
   const [isTutorialOpen, setIsTutorialOpen] = useState(false);
+  const [isOnlinePanelOpen, setIsOnlinePanelOpen] = useState(false);
+  const [joinCode, setJoinCode] = useState("");
   const [cameraImpact, setCameraImpact] = useState<CameraImpact>({
     id: 0,
     duration: 0,
@@ -195,6 +199,18 @@ function App() {
 
     return () => window.clearTimeout(timeoutId);
   }, [tauntPopup]);
+
+  useEffect(() => {
+    if (!multiplayer.room?.roomCode) {
+      return;
+    }
+
+    setMoves([]);
+    setCaptures([]);
+    setCinematicBanner(null);
+    setTauntPopup(null);
+    setCameraImpact({ id: Date.now(), duration: 0, strength: 0 });
+  }, [multiplayer.room?.roomCode]);
 
   function getCaptureTaunt(move: GameMove) {
     if (!move.captured || move.captured.type === "p") {
@@ -269,6 +285,10 @@ function App() {
   }
 
   function resetGame() {
+    if (multiplayer.room) {
+      multiplayer.leaveRoom();
+    }
+
     setGameStatus("White to move");
     setMoves([]);
     setCaptures([]);
@@ -298,6 +318,16 @@ function App() {
   }
 
   const lightPercent = Math.round(stageLighting * 100);
+  const onlineTurn = multiplayer.room?.fen.split(" ")[1];
+  const canPlayOnline = Boolean(
+    multiplayer.room?.opponentConnected &&
+      onlineTurn === multiplayer.room.color,
+  );
+  const displayStatus = multiplayer.room
+    ? multiplayer.room.opponentConnected
+      ? `${gameStatus} · You are ${multiplayer.room.color === "w" ? "White" : "Black"}`
+      : `Room ${multiplayer.room.roomCode} · Waiting for opponent`
+    : gameStatus;
 
   return (
     <main className="game-page">
@@ -305,10 +335,17 @@ function App() {
         <div>
           <p className="eyebrow">ACL Arena</p>
           <h1>Wizard Chess</h1>
-          <p>{gameStatus}</p>
+          <p>{displayStatus}</p>
         </div>
 
         <div className="hero-controls">
+          <button
+            className={`online-button ${multiplayer.room ? "online-button-active" : ""}`}
+            type="button"
+            onClick={() => setIsOnlinePanelOpen(true)}
+          >
+            {multiplayer.room ? `Room ${multiplayer.room.roomCode}` : "Play Online"}
+          </button>
           <div className="lighting-panel" aria-label="Stage lighting controls">
             <label htmlFor="stage-lighting">
               <span>Stage Lighting</span>
@@ -328,7 +365,7 @@ function App() {
           <div className="game-action-buttons">
             <button
               className="undo-button"
-              disabled={moves.length === 0}
+              disabled={moves.length === 0 || Boolean(multiplayer.room)}
               type="button"
               onClick={undoMove}
             >
@@ -382,8 +419,14 @@ function App() {
           <FireArena lighting={stageLighting} />
           <CapturedGraveyard captures={captures} />
           <Board
+            canPlayOnline={canPlayOnline}
+            incomingMove={multiplayer.incomingMove}
+            onlineFen={multiplayer.room?.fen}
+            onlinePlayerColor={multiplayer.room?.color}
+            onlineRoomCode={multiplayer.room?.roomCode}
             onStatusChange={setGameStatus}
             onMove={handleMove}
+            onOnlineMove={multiplayer.room ? multiplayer.sendMove : undefined}
             resetSignal={resetSignal}
             undoSignal={undoSignal}
           />
@@ -449,6 +492,94 @@ function App() {
           </button>
         </article>
       </section>
+
+      {isOnlinePanelOpen && (
+        <section
+          aria-labelledby="online-title"
+          aria-modal="true"
+          className="tutorial-backdrop"
+          role="dialog"
+        >
+          <div className="online-panel">
+            <button
+              aria-label="Close online play"
+              className="tutorial-close"
+              type="button"
+              onClick={() => setIsOnlinePanelOpen(false)}
+            >
+              ×
+            </button>
+
+            <p className="eyebrow">Multiplayer Portal</p>
+            <h2 id="online-title">Battle a Friend Online</h2>
+
+            {!multiplayer.room ? (
+              <>
+                <p className="online-intro">
+                  Create a private arena and share its six-character code, or enter a
+                  friend's code to join as Black.
+                </p>
+                <div className="online-actions">
+                  <button
+                    className="create-room-button"
+                    disabled={!multiplayer.isConnected}
+                    type="button"
+                    onClick={multiplayer.createRoom}
+                  >
+                    Create Battle Room
+                  </button>
+                  <div className="join-room-form">
+                    <input
+                      aria-label="Battle room code"
+                      maxLength={6}
+                      placeholder="ROOM CODE"
+                      value={joinCode}
+                      onChange={(event) =>
+                        setJoinCode(event.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""))
+                      }
+                    />
+                    <button
+                      disabled={!multiplayer.isConnected || joinCode.length !== 6}
+                      type="button"
+                      onClick={() => multiplayer.joinRoom(joinCode)}
+                    >
+                      Join
+                    </button>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="room-card">
+                <span>Your private room</span>
+                <strong>{multiplayer.room.roomCode}</strong>
+                <p>
+                  You command {multiplayer.room.color === "w" ? "White" : "Black"}.
+                  {multiplayer.room.opponentConnected
+                    ? canPlayOnline
+                      ? " Your move."
+                      : " Opponent's move."
+                    : " Waiting for your opponent to join…"}
+                </p>
+                <button
+                  className="copy-code-button"
+                  type="button"
+                  onClick={() => navigator.clipboard.writeText(multiplayer.room!.roomCode)}
+                >
+                  Copy Invite Code
+                </button>
+                <button className="leave-room-button" type="button" onClick={resetGame}>
+                  Leave Room
+                </button>
+              </div>
+            )}
+
+            <p className={`connection-status ${multiplayer.isConnected ? "connected" : ""}`}>
+              {multiplayer.isConnected ? "Arena server connected" : "Connecting to arena server…"}
+            </p>
+            {multiplayer.error && <p className="online-error">{multiplayer.error}</p>}
+          </div>
+        </section>
+      )}
 
       {isTutorialOpen && (
         <section

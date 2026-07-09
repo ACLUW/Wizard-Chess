@@ -5,6 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:server": "node server/index.mjs",
+    "server": "node server/index.mjs",
+    "test:multiplayer": "node server/smoke-test.mjs",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview"
@@ -16,6 +19,8 @@
     "chess.js": "^1.4.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
+    "socket.io": "^4.8.3",
+    "socket.io-client": "^4.8.3",
     "three": "^0.185.1"
   },
   "devDependencies": {

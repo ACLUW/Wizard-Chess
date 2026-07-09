@@ -30,6 +30,23 @@ Procedural marble/onyx textures are generated in `src/materials/stoneTextures.ts
 - Beginner guide covering controls and every piece's movement style.
 - Synchronized Undo Move and New Game controls that rewind the board, move log, captures, and arena overlays.
 
+## Online Multiplayer
+
+Online games use a Socket.IO server as the authority for legal moves and turn order.
+
+```bash
+npm run dev:server
+npm run dev
+```
+
+The server runs on `http://localhost:3001` and the Vite client uses that address by default. For deployment:
+
+- Set `CLIENT_ORIGIN` on the server to the deployed frontend origin.
+- Set `VITE_MULTIPLAYER_URL` when building the frontend to the public server URL.
+- Deploy the static Vite frontend to GitHub Pages and the persistent Node server to a service such as Render, Railway, or Fly.io.
+
+Players can create a private six-character room code, share it with a friend, and join as White or Black. Every move is validated on the server before either board animates it.
+
 This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
 
 Currently, two official plugins are available:

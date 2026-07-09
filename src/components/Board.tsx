@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
 import { Html, Text } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { Chess } from "chess.js";
@@ -7,6 +7,7 @@ import AttackTrail from "./AttackTrail";
 import CaptureEffect from "./CaptureEffect";
 import Piece from "./Piece";
 import { createStoneTexture, stoneTexturePresets } from "../materials/stoneTextures";
+import type { OnlineMove } from "../multiplayer";
 
 export type CapturedPiece = {
   type: PieceSymbol;
@@ -25,8 +26,14 @@ export type GameMove = {
 };
 
 type BoardProps = {
+  canPlayOnline?: boolean;
+  incomingMove?: OnlineMove | null;
+  onlineFen?: string;
+  onlinePlayerColor?: "w" | "b";
+  onlineRoomCode?: string;
   onStatusChange: (status: string) => void;
   onMove: (move: GameMove) => void;
+  onOnlineMove?: (move: Omit<OnlineMove, "id">) => void;
   resetSignal: number;
   undoSignal: number;
 };
@@ -133,9 +140,22 @@ function getStatus(chess: Chess) {
   }`;
 }
 
-function Board({ onStatusChange, onMove, resetSignal, undoSignal }: BoardProps) {
+function Board({
+  canPlayOnline = true,
+  incomingMove,
+  onlineFen,
+  onlinePlayerColor,
+  onlineRoomCode,
+  onStatusChange,
+  onMove,
+  onOnlineMove,
+  resetSignal,
+  undoSignal,
+}: BoardProps) {
   const [chess] = useState(() => new Chess());
   const previousUndoSignalRef = useRef(undoSignal);
+  const processedOnlineMoveRef = useRef<string | null>(null);
+  const syncedOnlineRoomRef = useRef<string | null>(null);
   const [selectedSquare, setSelectedSquare] = useState<Square | null>(null);
   const [, setPosition] = useState(chess.fen());
   const [captureAnimations, setCaptureAnimations] = useState<CaptureAnimation[]>([]);
@@ -152,6 +172,11 @@ function Board({ onStatusChange, onMove, resetSignal, undoSignal }: BoardProps) 
     () => createStoneTexture("blackTile", stoneTexturePresets.blackTile),
     [],
   );
+  const applyOnlineMove = useEffectEvent((move: OnlineMove) => {
+    const col = files.indexOf(move.to[0]);
+    const row = 8 - Number(move.to[1]);
+    commitMove(move.from, move.to, row, col, move.promotion, true);
+  });
 
   useEffect(() => {
     chess.reset();
@@ -165,6 +190,33 @@ function Board({ onStatusChange, onMove, resetSignal, undoSignal }: BoardProps) 
     setPosition(chess.fen());
     onStatusChange(getStatus(chess));
   }, [chess, onStatusChange, resetSignal]);
+
+  useEffect(() => {
+    if (
+      !onlineFen ||
+      !onlineRoomCode ||
+      syncedOnlineRoomRef.current === onlineRoomCode
+    ) {
+      return;
+    }
+
+    syncedOnlineRoomRef.current = onlineRoomCode;
+    chess.load(onlineFen);
+    setSelectedSquare(null);
+    setPendingPromotion(null);
+    setLastMove(null);
+    setPosition(chess.fen());
+    onStatusChange(getStatus(chess));
+  }, [chess, onlineFen, onlineRoomCode, onStatusChange]);
+
+  useEffect(() => {
+    if (!incomingMove || processedOnlineMoveRef.current === incomingMove.id) {
+      return;
+    }
+
+    processedOnlineMoveRef.current = incomingMove.id;
+    applyOnlineMove(incomingMove);
+  }, [incomingMove]);
 
   useEffect(() => {
     if (undoSignal === previousUndoSignalRef.current) {
@@ -434,14 +486,17 @@ function Board({ onStatusChange, onMove, resetSignal, undoSignal }: BoardProps) 
   }
 
   function handleSquarePress(square: Square, row: number, col: number) {
-    if (pendingPromotion) {
+    if (pendingPromotion || (onlinePlayerColor && !canPlayOnline)) {
       return;
     }
 
     const piece = chess.get(square);
 
     if (!selectedSquare) {
-      if (piece?.color === chess.turn()) {
+      if (
+        piece?.color === chess.turn() &&
+        (!onlinePlayerColor || piece.color === onlinePlayerColor)
+      ) {
         setSelectedSquare(square);
       }
 
@@ -453,7 +508,10 @@ function Board({ onStatusChange, onMove, resetSignal, undoSignal }: BoardProps) 
       return;
     }
 
-    if (piece?.color === chess.turn()) {
+    if (
+      piece?.color === chess.turn() &&
+      (!onlinePlayerColor || piece.color === onlinePlayerColor)
+    ) {
       setSelectedSquare(square);
       return;
     }
@@ -483,7 +541,16 @@ function Board({ onStatusChange, onMove, resetSignal, undoSignal }: BoardProps) 
     row: number,
     col: number,
     promotion?: PromotionPiece,
+    isServerConfirmed = false,
   ) {
+    if (onOnlineMove && !isServerConfirmed) {
+      onOnlineMove({ from, to, promotion });
+      setSelectedSquare(null);
+      setPendingPromotion(null);
+      setHoveredSquare(null);
+      return;
+    }
+
     const move = chess.move({
       from,
       to,
