@@ -45,7 +45,7 @@ The server runs on `http://localhost:3001` and the Vite client uses that address
 - Set `VITE_MULTIPLAYER_URL` when building the frontend to the public server URL.
 - Deploy the static Vite frontend to GitHub Pages and the persistent Node server to a service such as Render, Railway, or Fly.io.
 
-Players can create a private six-character room code, share it with a friend, and join as White or Black. Every move is validated on the server before either board animates it.
+Players can create a private six-character room code, copy a shareable invite link, and join as White or Black. Invite links use `?room=CODE`, automatically open the multiplayer portal, and prefill the room code for the invited player. Every move is validated on the server before either board animates it.
 
 This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
 

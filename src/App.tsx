@@ -157,6 +157,7 @@ function CameraImpactShake({ impact }: { impact: CameraImpact }) {
 
 function App() {
   const multiplayer = useMultiplayer();
+  const inviteJoinAttemptRef = useRef("");
   const [gameStatus, setGameStatus] = useState("White to move");
   const [moves, setMoves] = useState<GameMove[]>([]);
   const [captures, setCaptures] = useState<CapturedPiece[]>([]);
@@ -166,6 +167,7 @@ function App() {
   const [isTutorialOpen, setIsTutorialOpen] = useState(false);
   const [isOnlinePanelOpen, setIsOnlinePanelOpen] = useState(false);
   const [joinCode, setJoinCode] = useState("");
+  const [copyStatus, setCopyStatus] = useState("");
   const [cameraImpact, setCameraImpact] = useState<CameraImpact>({
     id: 0,
     duration: 0,
@@ -173,6 +175,39 @@ function App() {
   });
   const [cinematicBanner, setCinematicBanner] = useState<CinematicBannerState | null>(null);
   const [tauntPopup, setTauntPopup] = useState<TauntPopupState | null>(null);
+
+  useEffect(() => {
+    const roomCode = new URLSearchParams(window.location.search).get("room");
+
+    if (!roomCode) {
+      return;
+    }
+
+    const normalizedCode = roomCode.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6);
+
+    if (normalizedCode.length !== 6) {
+      return;
+    }
+
+    setJoinCode(normalizedCode);
+    setIsOnlinePanelOpen(true);
+  }, []);
+
+  useEffect(() => {
+    if (!multiplayer.isConnected || multiplayer.room || joinCode.length !== 6) {
+      return;
+    }
+
+    const roomCode = new URLSearchParams(window.location.search).get("room");
+    const normalizedUrlCode = roomCode?.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6);
+
+    if (normalizedUrlCode !== joinCode || inviteJoinAttemptRef.current === joinCode) {
+      return;
+    }
+
+    inviteJoinAttemptRef.current = joinCode;
+    multiplayer.joinRoom(joinCode);
+  }, [joinCode, multiplayer]);
 
   useEffect(() => {
     if (!cinematicBanner) {
@@ -205,6 +240,8 @@ function App() {
       return;
     }
 
+    const inviteUrl = getInviteUrl(multiplayer.room.roomCode);
+    window.history.replaceState(null, "", inviteUrl);
     setMoves([]);
     setCaptures([]);
     setCinematicBanner(null);
@@ -296,6 +333,7 @@ function App() {
     setTauntPopup(null);
     setCameraImpact({ id: Date.now(), duration: 0, strength: 0 });
     setResetSignal((signal) => signal + 1);
+    window.history.replaceState(null, "", window.location.pathname);
   }
 
   function undoMove() {
@@ -315,6 +353,26 @@ function App() {
     setTauntPopup(null);
     setCameraImpact({ id: Date.now(), duration: 0, strength: 0 });
     setUndoSignal((signal) => signal + 1);
+  }
+
+  function getInviteUrl(roomCode: string) {
+    const inviteUrl = new URL(window.location.href);
+    inviteUrl.searchParams.set("room", roomCode);
+    return inviteUrl.toString();
+  }
+
+  async function copyInvite(roomCode: string) {
+    const inviteUrl = getInviteUrl(roomCode);
+
+    try {
+      await navigator.clipboard.writeText(inviteUrl);
+      setCopyStatus("Invite link copied");
+    } catch {
+      await navigator.clipboard.writeText(roomCode);
+      setCopyStatus("Code copied");
+    }
+
+    window.setTimeout(() => setCopyStatus(""), 1800);
   }
 
   const lightPercent = Math.round(stageLighting * 100);
@@ -516,8 +574,8 @@ function App() {
             {!multiplayer.room ? (
               <>
                 <p className="online-intro">
-                  Create a private arena and share its six-character code, or enter a
-                  friend's code to join as Black.
+                  Create a private arena and share its invite link, or enter a friend's
+                  six-character code to join as Black.
                 </p>
                 <div className="online-actions">
                   <button
@@ -563,10 +621,11 @@ function App() {
                 <button
                   className="copy-code-button"
                   type="button"
-                  onClick={() => navigator.clipboard.writeText(multiplayer.room!.roomCode)}
+                  onClick={() => copyInvite(multiplayer.room!.roomCode)}
                 >
-                  Copy Invite Code
+                  Copy Invite Link
                 </button>
+                {copyStatus && <small className="copy-status">{copyStatus}</small>}
                 <button className="leave-room-button" type="button" onClick={resetGame}>
                   Leave Room
                 </button>

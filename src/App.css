@@ -774,6 +774,21 @@ body {
   background: linear-gradient(135deg, #57f7ff, #ffd166);
 }
 
+.copy-code-button:hover {
+  box-shadow:
+    0 0 24px rgba(87, 247, 255, 0.3),
+    0 12px 28px rgba(255, 209, 102, 0.16);
+  transform: translateY(-1px);
+}
+
+.copy-status {
+  color: #8dffbe;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .create-room-button:disabled,
 .join-room-form button:disabled {
   cursor: not-allowed;
